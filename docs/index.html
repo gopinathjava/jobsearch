@@ -24,15 +24,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 
 /* APP */
 #main-app{display:none}
-.topbar{background:var(--navy);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:100;gap:12px}
-.brand{font-family:'DM Serif Display',serif;color:var(--gold);font-size:16px;white-space:nowrap;flex-shrink:0}
-.nav-tabs{display:flex;gap:2px;flex-wrap:nowrap;overflow-x:auto}
-.nav-tab{padding:6px 12px;border-radius:6px;border:none;background:transparent;color:rgba(255,255,255,.55);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.topbar{background:var(--navy);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:100;gap:8px}
+.brand{font-family:'DM Serif Display',serif;color:var(--gold);font-size:15px;white-space:nowrap;flex-shrink:0}
+.nav-tabs{display:flex;gap:2px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex:1}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{padding:6px 11px;border-radius:6px;border:none;background:transparent;color:rgba(255,255,255,.55);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
 .nav-tab:hover{background:rgba(255,255,255,.08);color:#fff}
 .nav-tab.active{background:var(--gold);color:var(--navy);font-weight:500}
 .topbar-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .counter{font-size:11px;color:rgba(255,255,255,.3)}
 .key-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);font-family:'DM Sans',sans-serif;font-size:11px;padding:4px 9px;border-radius:5px;cursor:pointer}
+
+/* MOBILE BOTTOM NAV */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--navy);border-top:1px solid rgba(255,255,255,.1);z-index:200;padding:6px 0 env(safe-area-inset-bottom,6px)}
+.bottom-nav-inner{display:flex;justify-content:space-around;align-items:center}
+.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border:none;background:transparent;color:rgba(255,255,255,.45);font-family:'DM Sans',sans-serif;font-size:9px;cursor:pointer;min-width:40px;transition:color .15s}
+.bnav-btn .bnav-icon{font-size:18px;line-height:1}
+.bnav-btn.active{color:var(--gold)}
+.bnav-btn.active .bnav-icon{transform:scale(1.1)}
+
+@media(max-width:640px){
+  .nav-tabs{display:none}
+  .bottom-nav{display:block}
+  .panel{padding:14px 14px 80px}
+  .topbar{height:48px}
+  .brand{font-size:14px}
+  .job-cols{grid-template-columns:1fr}
+  .job-col{border-right:none;border-bottom:1px solid var(--border)}
+  .job-col:last-child{border-bottom:none}
+  .grid2,.grid3{grid-template-columns:1fr}
+}
 
 /* PANELS */
 .panel{display:none;padding:20px;max-width:860px;margin:0 auto}
@@ -268,7 +289,39 @@ textarea:focus,input[type=text]:focus,select:focus{border-color:var(--navy2)}
     </div>
     <div class="topbar-right">
       <span class="counter" id="counter">Ready</span>
-      <button class="key-btn" onclick="changeKeys()">🔑 Keys</button>
+      <button class="key-btn" onclick="toggleKeyTester()">🔑 Test Keys</button>
+    </div>
+  </div>
+
+  <!-- KEY TESTER PANEL -->
+  <div id="key-tester" style="display:none;background:#0f1f3d;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.1)">
+    <div style="max-width:860px;margin:0 auto">
+      <div style="font-family:'DM Serif Display',serif;color:var(--gold);font-size:14px;margin-bottom:12px">🔑 API Key Diagnostics</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+        <!-- Anthropic -->
+        <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:12px">
+          <div style="font-size:11px;font-weight:500;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">🟣 Anthropic / Claude</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:8px;font-family:monospace;word-break:break-all" id="ant-preview"></div>
+          <button class="btn btn-sm" id="test-ant-btn" onclick="testAnthropic()" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);width:100%">Test Claude</button>
+          <div id="test-ant-result" style="margin-top:8px;font-size:11px;line-height:1.5;display:none"></div>
+        </div>
+        <!-- RapidAPI -->
+        <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:12px">
+          <div style="font-size:11px;font-weight:500;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">🟠 RapidAPI / JSearch</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:8px;font-family:monospace;word-break:break-all" id="rapid-preview"></div>
+          <button class="btn btn-sm" id="test-rapid-btn" onclick="testRapidAPI()" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);width:100%">Test JSearch</button>
+          <div id="test-rapid-result" style="margin-top:8px;font-size:11px;line-height:1.5;display:none"></div>
+        </div>
+        <!-- Gemini -->
+        <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:12px">
+          <div style="font-size:11px;font-weight:500;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">🔵 Google / Gemini</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:8px;font-family:monospace;word-break:break-all" id="gem-preview"></div>
+          <button class="btn btn-sm" id="test-gem-btn" onclick="testGemini()" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);width:100%">Test Gemini</button>
+          <div id="test-gem-result" style="margin-top:8px;font-size:11px;line-height:1.5;display:none"></div>
+        </div>
+      </div>
+      <button class="btn btn-gold btn-sm" onclick="testAllKeys()">⚡ Test All Three Now</button>
+      <button class="btn btn-sm" onclick="toggleKeyTester()" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15);margin-left:8px">Close</button>
     </div>
   </div>
 
@@ -721,6 +774,33 @@ textarea:focus,input[type=text]:focus,select:focus{border-color:var(--navy2)}
     </div>
   </div>
 
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button class="bnav-btn active" id="bn-jobs" onclick="switchTab('jobs',this);syncBottomNav('bn-jobs')">
+        <span class="bnav-icon">🔍</span>Jobs
+      </button>
+      <button class="bnav-btn" id="bn-match" onclick="switchTab('match',this);syncBottomNav('bn-match')">
+        <span class="bnav-icon">📊</span>Match
+      </button>
+      <button class="bnav-btn" id="bn-apply" onclick="switchTab('apply',this);syncBottomNav('bn-apply')">
+        <span class="bnav-icon">📋</span>Apply
+      </button>
+      <button class="bnav-btn" id="bn-companies" onclick="switchTab('companies',this);syncBottomNav('bn-companies')">
+        <span class="bnav-icon">🏢</span>Companies
+      </button>
+      <button class="bnav-btn" id="bn-hub" onclick="switchTab('hub',this);syncBottomNav('bn-hub')">
+        <span class="bnav-icon">📚</span>Learn
+      </button>
+      <button class="bnav-btn" id="bn-exam" onclick="switchTab('exam',this);syncBottomNav('bn-exam')">
+        <span class="bnav-icon">🎯</span>Prep
+      </button>
+      <button class="bnav-btn" id="bn-resume" onclick="switchTab('resume',this);syncBottomNav('bn-resume')">
+        <span class="bnav-icon">📝</span>Resume
+      </button>
+    </div>
+  </nav>
+
 </div><!-- end main-app -->
 
 <script>
@@ -966,27 +1046,145 @@ function showStatus(id, msg, color){
 
 function startApp(){
   // Keys are hardcoded — just initialize the app
-
   document.getElementById('resume-ed').value = getResume();
   document.getElementById('main-app').style.display = 'block';
+
+  // Populate key previews in tester panel
+  const ap = document.getElementById('ant-preview');
+  const rp = document.getElementById('rapid-preview');
+  const gp = document.getElementById('gem-preview');
+  if(ap) ap.textContent = ANT_KEY ? ANT_KEY.substring(0,24)+'...' : '⚠ Not set';
+  if(rp) rp.textContent = RAPID_KEY ? RAPID_KEY.substring(0,24)+'...' : '⚠ Not set';
+  if(gp) gp.textContent = GEM_KEY ? GEM_KEY.substring(0,24)+'...' : '⚠ Not set';
+
   renderCompanies();
   renderHub();
   initExamTab();
   checkDailyReminders();
 }
 
-function changeKeys(){
-  alert('Keys are hardcoded in the app. Edit index.html on GitHub to update them.');
+function toggleKeyTester(){
+  const p = document.getElementById('key-tester');
+  p.style.display = p.style.display==='none' ? 'block' : 'none';
+}
+
+function setTestResult(id, ok, msg){
+  const el = document.getElementById(id);
+  el.style.display='block';
+  el.style.color = ok ? '#86efac' : '#fca5a5';
+  el.textContent = (ok ? '✓ ' : '✗ ') + msg;
+}
+
+async function testAnthropic(){
+  const btn = document.getElementById('test-ant-btn');
+  btn.textContent='Testing...'; btn.disabled=true;
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': ANT_KEY,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:10,
+        messages:[{role:'user',content:'hi'}]
+      })
+    });
+    const data = await res.json();
+    if(res.ok){
+      setTestResult('test-ant-result', true, 'Claude connected — key is valid');
+    } else {
+      const msg = data.error?.message || `Error ${res.status}`;
+      const hint =
+        res.status===401 ? 'Key is invalid or expired. Get a new one at console.anthropic.com' :
+        res.status===403 ? 'Access denied — check your account at console.anthropic.com' :
+        res.status===429 ? 'Rate limit hit — wait a moment and try again' : msg;
+      setTestResult('test-ant-result', false, hint);
+    }
+  }catch(e){
+    setTestResult('test-ant-result', false, 'Network error — check your internet connection');
+  }
+  btn.textContent='Test Claude'; btn.disabled=false;
+}
+
+async function testRapidAPI(){
+  const btn = document.getElementById('test-rapid-btn');
+  btn.textContent='Testing...'; btn.disabled=true;
+  try{
+    const res = await fetch('https://jsearch.p.rapidapi.com/search?query=architect&page=1&num_pages=1',{
+      headers:{
+        'X-RapidAPI-Key': RAPID_KEY,
+        'X-RapidAPI-Host':'jsearch.p.rapidapi.com'
+      }
+    });
+    const data = await res.json();
+    if(res.ok){
+      const count = data.data?.length || 0;
+      setTestResult('test-rapid-result', true, `JSearch connected — got ${count} results`);
+    } else {
+      const hint =
+        res.status===401 ? 'Key is invalid. Go to rapidapi.com → your profile → Security to copy your key' :
+        res.status===403 ? 'Not subscribed to JSearch. Go to rapidapi.com, find JSearch, click Subscribe → Free plan' :
+        res.status===429 ? 'Free tier limit reached (200/month). Wait until next month or upgrade' :
+        `Error ${res.status}`;
+      setTestResult('test-rapid-result', false, hint);
+    }
+  }catch(e){
+    setTestResult('test-rapid-result', false, 'Network error or blocked by browser — try disabling VPN or ad blocker');
+  }
+  btn.textContent='Test JSearch'; btn.disabled=false;
+}
+
+async function testGemini(){
+  const btn = document.getElementById('test-gem-btn');
+  btn.textContent='Testing...'; btn.disabled=true;
+  try{
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEM_KEY}`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({contents:[{parts:[{text:'hi'}]}],generationConfig:{maxOutputTokens:10}})
+    });
+    const data = await res.json();
+    if(res.ok){
+      setTestResult('test-gem-result', true, 'Gemini connected — key is valid');
+    } else {
+      const msg = data.error?.message || `Error ${res.status}`;
+      const hint =
+        res.status===400 ? 'Invalid key format. Key should start with AIza — get it from aistudio.google.com' :
+        res.status===403 ? 'Key invalid or API not enabled. Go to aistudio.google.com → Get API key' :
+        res.status===429 ? 'Rate limit hit — free tier allows 60 req/min. Wait a moment' : msg;
+      setTestResult('test-gem-result', false, hint);
+    }
+  }catch(e){
+    setTestResult('test-gem-result', false, 'Network error — check your internet connection');
+  }
+  btn.textContent='Test Gemini'; btn.disabled=false;
+}
+
+async function testAllKeys(){
+  await Promise.all([testAnthropic(), testRapidAPI(), testGemini()]);
 }
 
 window.addEventListener('DOMContentLoaded', startApp);
+
+function syncBottomNav(activeId){
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  const el = document.getElementById(activeId);
+  if(el) el.classList.add('active');
+}
 
 function switchTab(name, el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  el.classList.add('active');
+  if(el && el.classList.contains('nav-tab')) el.classList.add('active');
   if(name==='hub') checkDailyReminders();
+  // Sync bottom nav
+  const map = {jobs:'bn-jobs',match:'bn-match',apply:'bn-apply',learn:'bn-learn',companies:'bn-companies',hub:'bn-hub',exam:'bn-exam',resume:'bn-resume'};
+  syncBottomNav(map[name]||'');
 }
 
 function setBtn(id, loading, label){
@@ -1315,7 +1513,7 @@ function prefillApply(company, role){
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-apply').classList.add('active');
-  document.querySelectorAll('.nav-tab')[2].classList.add('active');
+  document.querySelectorAll('.nav-tab')[2].classList.add('active'); syncBottomNav('bn-apply');
 }
 
 function prefillMatch(jobId){
@@ -1325,7 +1523,7 @@ function prefillMatch(jobId){
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-match').classList.add('active');
-  document.querySelectorAll('.nav-tab')[1].classList.add('active');
+  document.querySelectorAll('.nav-tab')[1].classList.add('active'); syncBottomNav('bn-match');
 }
 
 // ── MATCH RESUME ──
@@ -1991,7 +2189,7 @@ function goToResumeReco(){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-hub').classList.add('active');
-  document.querySelectorAll('.nav-tab')[5].classList.add('active');
+  document.querySelectorAll('.nav-tab')[5].classList.add('active'); syncBottomNav('bn-hub');
   setTimeout(()=>checkResumeReady(),100);
 }
 
@@ -1999,7 +2197,7 @@ function quickPractice(skillName){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-exam').classList.add('active');
-  document.querySelectorAll('.nav-tab')[6].classList.add('active');
+  document.querySelectorAll('.nav-tab')[6].classList.add('active'); syncBottomNav('bn-exam');
   selectedExamSkills=[skillName];
   updateExamChips();
   setTimeout(()=>document.getElementById('btn-genq').scrollIntoView({behavior:'smooth',block:'center'}),150);

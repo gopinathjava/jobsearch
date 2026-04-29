@@ -21,18 +21,6 @@ html{scroll-behavior:smooth}
 body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
 
 /* SETUP */
-#setup-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--navy)}
-.setup-box{background:#fff;border-radius:16px;padding:36px;max-width:500px;width:100%}
-.setup-logo{font-family:'DM Serif Display',serif;font-size:24px;color:var(--navy);margin-bottom:4px}
-.setup-sub{color:var(--muted);font-size:13px;margin-bottom:24px}
-.setup-step{background:#f8f9fb;border-radius:10px;padding:14px 16px;margin-bottom:14px;font-size:13px;line-height:1.7}
-.setup-step strong{color:var(--navy);display:block;margin-bottom:4px}
-.setup-step a{color:var(--navy2)}
-.key-in{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-family:monospace;font-size:12px;color:var(--text);background:#fff;outline:none;margin-top:8px;transition:border-color .2s}
-.key-in:focus{border-color:var(--navy2)}
-.key-note{font-size:11px;color:var(--muted);margin-top:6px}
-.btn-launch{width:100%;padding:13px;background:var(--navy);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;margin-top:4px;transition:background .2s}
-.btn-launch:hover{background:var(--navy2)}
 
 /* APP */
 #main-app{display:none}
@@ -264,46 +252,8 @@ textarea:focus,input[type=text]:focus,select:focus{border-color:var(--navy2)}
 </head>
 <body>
 
-<!-- SETUP -->
-<div id="setup-screen">
-  <div class="setup-box">
-    <div class="setup-logo">ArchitectSearch ✦</div>
-    <div class="setup-sub">AI-powered job search · Live jobs + AI analysis · v2</div>
-
-    <div id="saved-notice" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:11px 14px;margin-bottom:14px;font-size:13px;color:#15803d;">
-      ✓ <strong>Keys found from last session</strong> — click Launch to continue.
-    </div>
-
-    <div class="setup-step">
-      <strong>Step 1 — Anthropic API key (you already have this)</strong>
-      From <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys
-      <input class="key-in" id="ant-key" type="password" placeholder="sk-ant-api03-...">
-    </div>
-
-    <div class="setup-step">
-      <strong>Step 2 — RapidAPI key (free — enables live job search)</strong>
-      1. Go to <a href="https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch" target="_blank">rapidapi.com → JSearch by OpenWeb Ninja</a> (click this link directly)<br>
-      2. Click <strong>Subscribe to Test</strong> → choose <strong>Basic / Free plan</strong> → Subscribe<br>
-      3. On the same page, look for <strong>Header Parameters</strong> — copy the <strong>X-RapidAPI-Key</strong> value
-      <input class="key-in" id="rapid-key" type="password" placeholder="paste your RapidAPI key here">
-      <div class="key-note">If you see multiple providers (OpenWeb Ninja, Pixelforge, API-city) — all work the same way. Pick any one, subscribe free, copy the key shown.</div>
-    </div>
-
-    <div class="setup-step">
-      <strong>Step 3 — Gemini API key (free — for interview questions)</strong>
-      1. Go to <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a> → sign in with Google<br>
-      2. Click <strong>Create API key</strong> → Create in new project<br>
-      3. Copy the key — starts with <code>AIza...</code> — free, no credit card needed
-      <input class="key-in" id="gem-key" type="password" placeholder="AIzaSy...">
-      <div class="key-note">All keys saved locally in your browser only. Gemini key is optional — Claude works without it.</div>
-    </div>
-
-    <button class="btn-launch" onclick="startApp()">Launch My Command Center →</button>
-  </div>
-</div>
-
 <!-- MAIN APP -->
-<div id="main-app">
+<div id="main-app" style="display:block">
   <div class="topbar">
     <div class="brand">ArchitectSearch ✦</div>
     <div class="nav-tabs">
@@ -784,7 +734,10 @@ Technical: Java, Spring Boot, Istio (Service Mesh), Kafka, Docker, Kubernetes, S
 Domain: Healthcare (prescriber, payer, claims, HIPAA), Financial Services (PCI, SOX), Payments, Risk, Data Platforms, AI/ML.
 Education: MCA Bangalore University, Sun Certified Enterprise Architect (SCEA), Harvard Leadership Academy, ArchiMate.`;
 
-let ANT_KEY = '', RAPID_KEY = '', GEM_KEY = '', callCount = 0, allJobs = [];
+let ANT_KEY = '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';
+let RAPID_KEY = 'bc410a1524msh8e0803e985bf0c3p1de5a7jsnb044217ac81b';
+let GEM_KEY = 'AIzaSyCM6L75meXD9ph3lhghJJGvSATSalgHb8s';
+let callCount = 0, allJobs = [];
 let activeModel = 'claude'; // 'claude' | 'gemini' | 'both'
 
 function selectModel(model, btn){
@@ -1012,29 +965,9 @@ function showStatus(id, msg, color){
 }
 
 function startApp(){
-  const ant = document.getElementById('ant-key').value.trim();
-  const rapid = document.getElementById('rapid-key').value.trim();
-  const gem = document.getElementById('gem-key').value.trim();
-  const savedAnt = localStorage.getItem('gk_ant_key');
-  const savedRapid = localStorage.getItem('gk_rapid_key');
-  const savedGem = localStorage.getItem('gk_gem_key');
-  const antKey = ant || savedAnt;
-  const rapidKey = rapid || savedRapid;
-  const gemKey = gem || savedGem || '';
-
-  if(!antKey || !antKey.startsWith('sk-ant')){
-    alert('Please enter a valid Anthropic API key (sk-ant-...)'); return;
-  }
-  if(!rapidKey){
-    if(!confirm('No RapidAPI key entered — live job search will not work. Continue anyway?')) return;
-  }
-  if(ant) localStorage.setItem('gk_ant_key', ant);
-  if(rapid) localStorage.setItem('gk_rapid_key', rapid);
-  if(gem) localStorage.setItem('gk_gem_key', gem);
-  ANT_KEY = antKey; RAPID_KEY = rapidKey || ''; GEM_KEY = gemKey;
+  // Keys are hardcoded — just initialize the app
 
   document.getElementById('resume-ed').value = getResume();
-  document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('main-app').style.display = 'block';
   renderCompanies();
   renderHub();
@@ -1043,25 +976,10 @@ function startApp(){
 }
 
 function changeKeys(){
-  const ant = prompt('Anthropic key (leave blank to keep current):');
-  const rapid = prompt('RapidAPI key (leave blank to keep current):');
-  const gem = prompt('Gemini API key (leave blank to keep current):');
-  if(ant && ant.startsWith('sk-ant')){ localStorage.setItem('gk_ant_key',ant); ANT_KEY=ant; }
-  if(rapid){ localStorage.setItem('gk_rapid_key',rapid); RAPID_KEY=rapid; }
-  if(gem){ localStorage.setItem('gk_gem_key',gem); GEM_KEY=gem; }
-  document.getElementById('counter').textContent='✓ Keys updated';
-  setTimeout(()=>{ document.getElementById('counter').textContent=callCount+' calls'; },2000);
+  alert('Keys are hardcoded in the app. Edit index.html on GitHub to update them.');
 }
 
-window.addEventListener('DOMContentLoaded',()=>{
-  const ant = localStorage.getItem('gk_ant_key');
-  const rapid = localStorage.getItem('gk_rapid_key');
-  const gem = localStorage.getItem('gk_gem_key');
-  if(ant) document.getElementById('ant-key').value = ant;
-  if(rapid) document.getElementById('rapid-key').value = rapid;
-  if(gem) document.getElementById('gem-key').value = gem;
-  if(ant && rapid) document.getElementById('saved-notice').style.display='block';
-});
+window.addEventListener('DOMContentLoaded', startApp);
 
 function switchTab(name, el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));

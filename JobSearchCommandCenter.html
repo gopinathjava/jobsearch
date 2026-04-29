@@ -1,0 +1,2143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArchitectSearch — Job Command Center v2</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0f1f3d;--navy2:#1a3260;--gold:#c8a84b;--gold2:#e8c96a;
+  --cream:#f7f4ee;--white:#fff;--text:#1a1a2e;--muted:#6b7280;
+  --border:rgba(15,31,61,.10);
+  --green:#15803d;--green-bg:#dcfce7;
+  --amber:#92400e;--amber-bg:#fef3c7;
+  --red:#991b1b;--red-bg:#fee2e2;
+  --blue:#1e40af;--blue-bg:#dbeafe;
+  --purple:#4c1d95;--purple-bg:#ede9fe;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+
+/* SETUP */
+#setup-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--navy)}
+.setup-box{background:#fff;border-radius:16px;padding:36px;max-width:500px;width:100%}
+.setup-logo{font-family:'DM Serif Display',serif;font-size:24px;color:var(--navy);margin-bottom:4px}
+.setup-sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+.setup-step{background:#f8f9fb;border-radius:10px;padding:14px 16px;margin-bottom:14px;font-size:13px;line-height:1.7}
+.setup-step strong{color:var(--navy);display:block;margin-bottom:4px}
+.setup-step a{color:var(--navy2)}
+.key-in{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-family:monospace;font-size:12px;color:var(--text);background:#fff;outline:none;margin-top:8px;transition:border-color .2s}
+.key-in:focus{border-color:var(--navy2)}
+.key-note{font-size:11px;color:var(--muted);margin-top:6px}
+.btn-launch{width:100%;padding:13px;background:var(--navy);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;margin-top:4px;transition:background .2s}
+.btn-launch:hover{background:var(--navy2)}
+
+/* APP */
+#main-app{display:none}
+.topbar{background:var(--navy);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:100;gap:12px}
+.brand{font-family:'DM Serif Display',serif;color:var(--gold);font-size:16px;white-space:nowrap;flex-shrink:0}
+.nav-tabs{display:flex;gap:2px;flex-wrap:nowrap;overflow-x:auto}
+.nav-tab{padding:6px 12px;border-radius:6px;border:none;background:transparent;color:rgba(255,255,255,.55);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.nav-tab:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-tab.active{background:var(--gold);color:var(--navy);font-weight:500}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.counter{font-size:11px;color:rgba(255,255,255,.3)}
+.key-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);font-family:'DM Sans',sans-serif;font-size:11px;padding:4px 9px;border-radius:5px;cursor:pointer}
+
+/* PANELS */
+.panel{display:none;padding:20px;max-width:860px;margin:0 auto}
+.panel.active{display:block}
+.ptitle{font-family:'DM Serif Display',serif;font-size:20px;color:var(--navy);margin-bottom:3px}
+.psub{color:var(--muted);font-size:13px;margin-bottom:18px}
+
+/* CARDS */
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px}
+.card-hdr{font-size:13px;font-weight:500;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card-icon{width:24px;height:24px;background:var(--navy);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+
+/* FORM */
+.field{margin-bottom:11px}
+label{display:block;font-size:11px;font-weight:500;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em}
+textarea,input[type=text],select{width:100%;border:1px solid var(--border);border-radius:7px;padding:8px 11px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:#fff;outline:none;transition:border-color .15s;resize:vertical}
+textarea:focus,input[type=text]:focus,select:focus{border-color:var(--navy2)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px}
+@media(max-width:560px){.grid2,.grid3{grid-template-columns:1fr}}
+
+/* BUTTONS */
+.btn{padding:9px 16px;border-radius:7px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-navy:hover{background:var(--navy2)}
+.btn-navy:disabled{opacity:.4;cursor:not-allowed}
+.btn-gold{background:var(--gold);color:var(--navy)}
+.btn-gold:hover{background:var(--gold2)}
+.btn-gold:disabled{opacity:.4;cursor:not-allowed}
+.btn-sm{padding:5px 11px;font-size:12px;border-radius:6px}
+
+/* RESULT BOX */
+.result-box{background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px;font-size:13px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word;max-height:420px;overflow-y:auto;margin-top:12px}
+.result-ph{color:var(--muted);font-size:13px;font-style:italic;padding:16px 0;text-align:center}
+
+/* TAGS */
+.tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500;margin:2px 2px 2px 0}
+.tag-g{background:var(--green-bg);color:var(--green)}
+.tag-a{background:var(--amber-bg);color:var(--amber)}
+.tag-r{background:var(--red-bg);color:var(--red)}
+.tag-b{background:var(--blue-bg);color:var(--blue)}
+.tag-p{background:var(--purple-bg);color:var(--purple)}
+.tag-n{background:rgba(15,31,61,.07);color:var(--navy)}
+
+/* SCORE RING */
+.score-ring{width:72px;height:72px;border-radius:50%;border:4px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:20px;flex-shrink:0}
+.score-ring.high{border-color:#16a34a;color:#16a34a;background:#f0fdf4}
+.score-ring.mid{border-color:#d97706;color:#d97706;background:#fffbeb}
+.score-ring.low{border-color:#dc2626;color:#dc2626;background:#fef2f2}
+.score-lbl{font-size:10px;font-family:'DM Sans',sans-serif;font-weight:500;margin-top:-4px}
+
+/* JOB CARDS — horizontal 3-column layout */
+.jobs-grid{display:grid;gap:14px;margin-top:14px}
+.job-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .15s}
+.job-card:hover{border-color:rgba(15,31,61,.22)}
+.job-card.applied-card{border-color:#16a34a;border-width:2px}
+.job-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.job-title-wrap{flex:1;min-width:0}
+.job-title{font-size:14px;font-weight:500;color:var(--navy);margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.job-company{font-size:12px;color:var(--muted)}
+.job-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.job-header-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.match-ring{width:44px;height:44px;border-radius:50%;border:3px solid;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:14px;flex-shrink:0}
+.match-ring.high{border-color:#16a34a;color:#16a34a;background:#f0fdf4}
+.match-ring.mid{border-color:#d97706;color:#d97706;background:#fffbeb}
+.match-ring.low{border-color:#dc2626;color:#dc2626;background:#fef2f2}
+.applied-badge{background:#dcfce7;color:#15803d;font-size:10px;font-weight:500;padding:3px 8px;border-radius:99px;white-space:nowrap;border:1px solid #86efac}
+.job-cols{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border)}
+.job-col{padding:11px 14px;border-right:1px solid var(--border)}
+.job-col:last-child{border-right:none}
+.job-col-label{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}
+.skill-dot{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500;margin:2px 2px 0 0}
+.skill-have{background:#dcfce7;color:#15803d}
+.skill-gap{background:#fef3c7;color:#92400e}
+.resource-compact{display:flex;align-items:flex-start;gap:5px;padding:4px 0;font-size:11px;border-bottom:1px solid var(--border);line-height:1.4}
+.resource-compact:last-child{border-bottom:none}
+.resource-compact a{color:var(--navy2);text-decoration:none;font-weight:500}
+.resource-compact a:hover{text-decoration:underline}
+.verdict-col{font-size:11px;color:var(--muted);line-height:1.5;font-style:italic}
+.job-footer{display:flex;align-items:center;gap:8px;padding:10px 14px;flex-wrap:wrap}
+.applied-toggle{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);cursor:pointer;padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:#fff;font-family:'DM Sans',sans-serif;transition:all .15s;user-select:none}
+.applied-toggle:hover{border-color:var(--green);color:var(--green)}
+.applied-toggle.is-applied{background:#dcfce7;color:#15803d;border-color:#86efac;font-weight:500}
+.resource-level{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:500;flex-shrink:0}
+.level-b{background:#dbeafe;color:#1e40af}
+.level-i{background:#fef3c7;color:#92400e}
+.level-e{background:#dcfce7;color:#15803d}
+.loading-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center;color:var(--muted);font-size:13px;font-style:italic}
+@media(max-width:640px){.job-cols{grid-template-columns:1fr}.job-col{border-right:none;border-bottom:1px solid var(--border)}.job-col:last-child{border-bottom:none}}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.filter-btn{padding:5px 12px;border-radius:99px;border:1px solid var(--border);background:#fff;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s}
+.filter-btn:hover,.filter-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.results-count{font-size:12px;color:var(--muted);margin-left:auto}
+
+/* SKILL BARS */
+.skill-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.skill-row:last-child{border-bottom:none}
+.skill-name{width:170px;font-size:13px;flex-shrink:0}
+.skill-track{flex:1;height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden}
+.skill-fill{height:100%;border-radius:3px}
+.skill-lbl{font-size:11px;width:76px;text-align:right;flex-shrink:0}
+
+/* PROFILE BADGE */
+.profile-badge{background:var(--navy);border-radius:10px;padding:13px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.avatar{width:42px;height:42px;border-radius:50%;background:var(--gold);color:var(--navy);font-family:'DM Serif Display',serif;font-size:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.p-name{font-family:'DM Serif Display',serif;color:var(--gold);font-size:14px}
+.p-title{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+
+/* COACH */
+.coach{background:var(--navy);border-radius:10px;padding:16px 18px;margin-bottom:14px;color:#fff}
+.coach-title{font-family:'DM Serif Display',serif;color:var(--gold);font-size:14px;margin-bottom:5px}
+.coach-body{font-size:13px;color:rgba(255,255,255,.8);line-height:1.6}
+
+/* SPINNER */
+.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.spin.dk{border-color:rgba(15,31,61,.2);border-top-color:var(--navy)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.spin.dk{border-color:rgba(15,31,61,.2);border-top-color:var(--navy)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* LEARNING HUB */
+.skill-hub-grid{display:grid;gap:12px;margin-top:14px}
+.skill-hub-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;transition:border-color .15s}
+.skill-hub-card:hover{border-color:rgba(15,31,61,.2)}
+.skill-hub-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:12px}
+.skill-hub-name{font-size:14px;font-weight:500;color:var(--navy)}
+.skill-hub-src{font-size:11px;color:var(--muted);margin-top:2px}
+.proficiency-sel{border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--text);background:#fff;outline:none;cursor:pointer}
+.progress-bar-wrap{margin:10px 0}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px}
+.progress-track{height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px;transition:width .4s}
+.progress-steps{display:flex;gap:4px;margin-top:6px}
+.progress-step-btn{flex:1;padding:4px 2px;border:1px solid var(--border);border-radius:4px;background:#fff;font-family:'DM Sans',sans-serif;font-size:10px;color:var(--muted);cursor:pointer;text-align:center;transition:all .15s}
+.progress-step-btn:hover{border-color:var(--navy);color:var(--navy)}
+.progress-step-btn.done{background:var(--navy);color:#fff;border-color:var(--navy)}
+.resource-list{margin-top:10px}
+.resource-list-label{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.resource-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.resource-row:last-child{border-bottom:none}
+.resource-type{display:inline-block;padding:1px 7px;border-radius:3px;font-size:10px;font-weight:500;flex-shrink:0}
+.rt-udemy{background:#a435f020;color:#a435f0}
+.rt-youtube{background:#ff000020;color:#cc0000}
+.rt-aws{background:#ff990020;color:#c47000}
+.rt-claude{background:#d97af220;color:#6c3697}
+.rt-other{background:#dbeafe;color:#1e40af}
+.add-resource-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.add-resource-row input,.add-resource-row select{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text);background:#fff;outline:none}
+.hub-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.hub-filter{padding:4px 12px;border-radius:99px;border:1px solid var(--border);background:#fff;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer}
+.hub-filter.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.add-skill-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.add-skill-row input{flex:1;min-width:160px;border:1px solid var(--border);border-radius:7px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:#fff;outline:none}
+.hub-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px}
+.hub-empty strong{display:block;font-size:16px;color:var(--navy);margin-bottom:8px}
+
+/* INTERVIEW PREP */
+.question-block{background:var(--navy);border-radius:10px;padding:18px 20px;margin-bottom:14px}
+.q-type{font-size:11px;color:var(--gold);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.q-text{font-size:15px;font-family:'DM Serif Display',serif;color:#fff;line-height:1.5}
+.q-skill{font-size:11px;color:rgba(255,255,255,.4);margin-top:8px}
+.answer-area{width:100%;border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);resize:vertical;outline:none;margin-bottom:12px;min-height:90px}
+.answer-area:focus{border-color:var(--navy2)}
+.q-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.feedback-box{background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;color:var(--text);white-space:pre-wrap;margin-top:12px;max-height:300px;overflow-y:auto}
+.hist-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.hist-item:last-child{border-bottom:none}
+.hist-badge{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-top:1px}
+.hist-good{background:var(--green-bg);color:var(--green)}
+.hist-skip{background:var(--amber-bg);color:var(--amber)}
+.exam-stat{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 16px;text-align:center;flex:1;min-width:70px}
+.exam-stat-n{font-family:'DM Serif Display',serif;font-size:22px;color:var(--navy)}
+.exam-stat-l{font-size:11px;color:var(--muted)}
+.skill-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:500;margin:3px;cursor:pointer;border:1px solid transparent;transition:all .15s;user-select:none}
+.skill-chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.skill-chip.off{background:#fff;color:var(--text);border-color:var(--border)}
+.skill-chip.off:hover{border-color:var(--navy2)}
+.persona-btn{display:flex;align-items:center;gap:10px;padding:10px 16px;border:1px solid var(--border);border-radius:10px;background:#fff;cursor:pointer;transition:all .15s;text-align:left;font-family:'DM Sans',sans-serif}
+.persona-btn:hover{border-color:var(--navy2)}
+.persona-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.model-btn{display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;transition:all .15s;text-align:left;font-family:'DM Sans',sans-serif;min-width:110px}
+.model-btn:hover{border-color:var(--navy2)}
+.model-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.model-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;flex-shrink:0}
+.mb-claude{background:#ede9fe;color:#4c1d95}
+.mb-gemini{background:#dbeafe;color:#1e40af}
+.mb-both{background:#fef3c7;color:#92400e}
+
+/* COMPANY TRACKER */
+.co-grid{display:grid;gap:10px;margin-top:14px}
+.co-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px;transition:border-color .15s}
+.co-card:hover{border-color:rgba(15,31,61,.25)}
+.co-logo{width:40px;height:40px;border-radius:8px;background:var(--navy);color:var(--gold);font-family:'DM Serif Display',serif;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.co-body{flex:1;min-width:0}
+.co-name{font-size:14px;font-weight:500;color:var(--navy);margin-bottom:2px}
+.co-meta{font-size:12px;color:var(--muted)}
+.co-tags{margin-top:5px}
+.co-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;align-items:center}
+.status-sel{border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--text);background:#fff;outline:none;cursor:pointer}
+.phase2-card{background:#fff;border:2px solid var(--gold);border-radius:12px;padding:18px;margin-bottom:16px}
+.phase2-title{font-family:'DM Serif Display',serif;font-size:16px;color:var(--navy);margin-bottom:4px}
+.phase2-sub{font-size:13px;color:var(--muted);margin-bottom:14px}
+.co-checkbox{width:16px;height:16px;cursor:pointer;flex-shrink:0}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px}
+.empty-state strong{display:block;font-size:16px;color:var(--navy);margin-bottom:8px}
+.stat-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.stat-pill{background:#fff;border:1px solid var(--border);border-radius:99px;padding:5px 14px;font-size:12px;color:var(--text);display:flex;align-items:center;gap:6px}
+.stat-pill span{font-weight:500;color:var(--navy)}
+.add-co-row{display:flex;gap:8px;margin-bottom:14px}
+.add-co-row input{flex:1;border:1px solid var(--border);border-radius:7px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:#fff;outline:none}
+.add-co-row input:focus{border-color:var(--navy2)}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="setup-screen">
+  <div class="setup-box">
+    <div class="setup-logo">ArchitectSearch ✦</div>
+    <div class="setup-sub">AI-powered job search · Live jobs + AI analysis · v2</div>
+
+    <div id="saved-notice" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:11px 14px;margin-bottom:14px;font-size:13px;color:#15803d;">
+      ✓ <strong>Keys found from last session</strong> — click Launch to continue.
+    </div>
+
+    <div class="setup-step">
+      <strong>Step 1 — Anthropic API key (you already have this)</strong>
+      From <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys
+      <input class="key-in" id="ant-key" type="password" placeholder="sk-ant-api03-...">
+    </div>
+
+    <div class="setup-step">
+      <strong>Step 2 — RapidAPI key (free — enables live job search)</strong>
+      1. Go to <a href="https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch" target="_blank">rapidapi.com → JSearch by OpenWeb Ninja</a> (click this link directly)<br>
+      2. Click <strong>Subscribe to Test</strong> → choose <strong>Basic / Free plan</strong> → Subscribe<br>
+      3. On the same page, look for <strong>Header Parameters</strong> — copy the <strong>X-RapidAPI-Key</strong> value
+      <input class="key-in" id="rapid-key" type="password" placeholder="paste your RapidAPI key here">
+      <div class="key-note">If you see multiple providers (OpenWeb Ninja, Pixelforge, API-city) — all work the same way. Pick any one, subscribe free, copy the key shown.</div>
+    </div>
+
+    <div class="setup-step">
+      <strong>Step 3 — Gemini API key (free — for interview questions)</strong>
+      1. Go to <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a> → sign in with Google<br>
+      2. Click <strong>Create API key</strong> → Create in new project<br>
+      3. Copy the key — starts with <code>AIza...</code> — free, no credit card needed
+      <input class="key-in" id="gem-key" type="password" placeholder="AIzaSy...">
+      <div class="key-note">All keys saved locally in your browser only. Gemini key is optional — Claude works without it.</div>
+    </div>
+
+    <button class="btn-launch" onclick="startApp()">Launch My Command Center →</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app">
+  <div class="topbar">
+    <div class="brand">ArchitectSearch ✦</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('jobs',this)">🔍 Live Jobs</button>
+      <button class="nav-tab" onclick="switchTab('match',this)">📊 Match & Rank</button>
+      <button class="nav-tab" onclick="switchTab('apply',this)">📋 Apply Guide</button>
+      <button class="nav-tab" onclick="switchTab('learn',this)">🧠 Skill Up</button>
+      <button class="nav-tab" onclick="switchTab('companies',this)">🏢 Companies</button>
+      <button class="nav-tab" onclick="switchTab('hub',this)">📚 Learning Hub</button>
+      <button class="nav-tab" onclick="switchTab('exam',this)">🎯 Interview Prep</button>
+      <button class="nav-tab" onclick="switchTab('resume',this)">📝 My Resume</button>
+    </div>
+    <div class="topbar-right">
+      <span class="counter" id="counter">Ready</span>
+      <button class="key-btn" onclick="changeKeys()">🔑 Keys</button>
+    </div>
+  </div>
+
+  <!-- TAB: LIVE JOBS -->
+  <div id="tab-jobs" class="panel active">
+    <div class="ptitle">Live Job Search</div>
+    <div class="psub">Pulls real jobs from Indeed & LinkedIn via JSearch API — then Claude scores each one against your resume.</div>
+
+    <div class="profile-badge">
+      <div class="avatar">GK</div>
+      <div>
+        <div class="p-name">Gopinath Kondapally</div>
+        <div class="p-title">Principal Enterprise Architect · Phoenix AZ · 20+ yrs · Healthcare & FinServ</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon">🎯</div> Search Criteria</div>
+      <div class="grid3">
+        <div class="field">
+          <label>Role</label>
+          <select id="j-role">
+            <option value="Principal Architect">Principal Architect</option>
+            <option value="Enterprise Architect">Enterprise Architect</option>
+            <option value="Software Architect">Software Architect</option>
+            <option value="Architect">Architect</option>
+            <option value="Director of Architecture">Director of Architecture</option>
+            <option value="VP Architecture">VP of Architecture</option>
+            <option value="Lead Architect">Lead Architect</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Location</label>
+          <select id="j-loc">
+            <option value="remote">Remote (US)</option>
+            <option value="Phoenix, AZ">Phoenix, AZ</option>
+            <option value="Phoenix AZ OR remote">Phoenix or Remote</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Domain</label>
+          <select id="j-domain">
+            <option value="">Any domain</option>
+            <option value="healthcare">Healthcare / Health IT</option>
+            <option value="financial services">Financial Services</option>
+            <option value="insurance">Insurance</option>
+            <option value="technology">Technology / SaaS</option>
+            <option value="government">Government / Defense</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-navy" id="btn-search" onclick="searchJobs()">🔍 Search Live Jobs</button>
+        <button class="btn btn-sm" style="border:1px solid var(--border);background:#fff" onclick="testRapidKey()">🔧 Test API Key</button>
+        <span style="font-size:12px;color:var(--muted)">Uses RapidAPI · ~1 call per search</span>
+      </div>
+      <div id="api-test-result" style="display:none;margin-top:10px;padding:12px 14px;border-radius:8px;font-size:13px"></div>
+    </div>
+
+    <div id="jobs-section" style="display:none">
+      <div class="filter-bar" id="filter-bar"></div>
+      <div class="jobs-grid" id="jobs-grid"></div>
+    </div>
+  </div>
+
+  <!-- TAB: MATCH & RANK -->
+  <div id="tab-match" class="panel">
+    <div class="ptitle">Resume Match & Ranking</div>
+    <div class="psub">Paste any job description — get a score, ATS gap analysis, and exact resume tweaks.</div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon">📄</div> Paste Job Description</div>
+      <div class="field"><label>Full JD text</label><textarea id="m-jd" rows="9" placeholder="Paste the complete job description here..."></textarea></div>
+      <button class="btn btn-navy" id="btn-match" onclick="matchResume()">📊 Score My Resume</button>
+    </div>
+    <div id="match-result" style="display:none">
+      <div class="card">
+        <div class="card-hdr"><div class="card-icon">📈</div> Match Analysis</div>
+        <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+          <div id="score-ring"></div>
+          <div style="flex:1">
+            <div id="match-tags" style="margin-bottom:10px"></div>
+            <div id="match-out" class="result-box">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: APPLY GUIDE -->
+  <div id="tab-apply" class="panel">
+    <div class="ptitle">Application & Interview Guide</div>
+    <div class="psub">Complete action plan — ATS optimization, interview prep, and smart questions to ask.</div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon">🏢</div> Role Details</div>
+      <div class="grid2">
+        <div class="field"><label>Company</label><input type="text" id="a-company" placeholder="e.g. UnitedHealth Group"></div>
+        <div class="field"><label>Role Title</label><input type="text" id="a-role" placeholder="e.g. Principal Architect"></div>
+      </div>
+      <div class="field"><label>Key JD Requirements</label><textarea id="a-jd" rows="4" placeholder="Paste a few key bullet points from the JD..."></textarea></div>
+      <div class="field"><label>How are you applying?</label>
+        <select id="a-method">
+          <option>Friend referral (internal)</option>
+          <option>Direct on company website</option>
+          <option>LinkedIn Easy Apply</option>
+          <option>Recruiter reached out</option>
+        </select>
+      </div>
+      <button class="btn btn-navy" id="btn-apply" onclick="getApplyGuide()">📋 Build My Action Plan</button>
+      <div id="apply-out" class="result-ph">Your personalized plan will appear here.</div>
+    </div>
+  </div>
+
+  <!-- TAB: SKILL UP -->
+  <div id="tab-learn" class="panel">
+    <div class="ptitle">Skill Up — AI, AWS & Architecture</div>
+    <div class="psub">30-day learning paths with free resources for any skill gap.</div>
+    <div class="coach">
+      <div class="coach-title">Your competitive edge in 2025</div>
+      <div class="coach-body">Principal Architects who speak credibly to <strong style="color:var(--gold)">Agentic AI, AWS patterns, and hands-on Spring Boot / Istio</strong> lead the market. You have the governance — these skills complete the picture.</div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon">📈</div> Skills Radar</div>
+      <div class="skill-row"><span class="skill-name">Enterprise Architecture</span><div class="skill-track"><div class="skill-fill" style="width:95%;background:#16a34a"></div></div><span class="skill-lbl" style="color:#16a34a">Expert</span></div>
+      <div class="skill-row"><span class="skill-name">Stakeholder Leadership</span><div class="skill-track"><div class="skill-fill" style="width:90%;background:#16a34a"></div></div><span class="skill-lbl" style="color:#16a34a">Expert</span></div>
+      <div class="skill-row"><span class="skill-name">Cloud Modernization</span><div class="skill-track"><div class="skill-fill" style="width:82%;background:#16a34a"></div></div><span class="skill-lbl" style="color:#16a34a">Strong</span></div>
+      <div class="skill-row"><span class="skill-name">AWS Architecture</span><div class="skill-track"><div class="skill-fill" style="width:55%;background:#d97706"></div></div><span class="skill-lbl" style="color:#d97706">Build up</span></div>
+      <div class="skill-row"><span class="skill-name">Hands-on Java/Spring</span><div class="skill-track"><div class="skill-fill" style="width:48%;background:#d97706"></div></div><span class="skill-lbl" style="color:#d97706">Refresh</span></div>
+      <div class="skill-row"><span class="skill-name">Agentic AI / Claude API</span><div class="skill-track"><div class="skill-fill" style="width:38%;background:#d97706"></div></div><span class="skill-lbl" style="color:#d97706">Growing</span></div>
+      <div class="skill-row"><span class="skill-name">Istio / Service Mesh</span><div class="skill-track"><div class="skill-fill" style="width:28%;background:#dc2626"></div></div><span class="skill-lbl" style="color:#dc2626">Start here</span></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon">🎓</div> Generate Learning Path</div>
+      <div class="grid2">
+        <div class="field"><label>Skill</label>
+          <select id="l-skill">
+            <option>Agentic AI with Claude API</option>
+            <option>AWS Solutions Architect patterns</option>
+            <option>AWS Well-Architected Framework & DR</option>
+            <option>Spring Boot & Microservices hands-on</option>
+            <option>Istio / Service Mesh</option>
+            <option>Kubernetes & Helm hands-on</option>
+            <option>Kafka & Event-Driven Architecture</option>
+            <option>AI/ML Platform Architecture</option>
+          </select>
+        </div>
+        <div class="field"><label>Time Per Week</label>
+          <select id="l-time">
+            <option>2–3 hours/week</option>
+            <option>4–5 hours/week</option>
+            <option>6–8 hours/week</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Current Level</label>
+        <select id="l-level">
+          <option>Conceptual — understand architecturally, not coded it</option>
+          <option>Beginner — read about it, not built anything</option>
+          <option>Rusty — done it before, years ago</option>
+          <option>Intermediate — can build basic things</option>
+        </select>
+      </div>
+      <button class="btn btn-gold" id="btn-learn" onclick="getLearningPath()">🧠 Build My 30-Day Path</button>
+      <div id="learn-out" class="result-ph">Your learning path will appear here.</div>
+    </div>
+  </div>
+
+  <!-- TAB: MY RESUME -->
+  <div id="tab-resume" class="panel">
+    <div class="ptitle">My Resume</div>
+    <div class="psub">Edit your resume text — all tabs use this automatically. Saved in your browser.</div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon">💾</div> Resume Text</div>
+      <div class="field"><label>Your resume — plain text, roles, achievements, skills</label>
+        <textarea id="resume-ed" rows="18" placeholder="Paste your resume content here..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-navy" onclick="saveResume()">💾 Save Resume</button>
+        <button class="btn btn-gold" onclick="resetResume()">↩ Reset to Default</button>
+        <span id="save-status" style="font-size:12px;color:var(--muted)"></span>
+      </div>
+    </div>
+    <div class="card" style="background:#f0fdf4;border-color:rgba(21,128,61,.2)">
+      <div class="card-hdr" style="color:#15803d">✅ Tips for best results</div>
+      <div style="font-size:13px;color:#166534;line-height:1.8">
+        • Include <strong>company names, role titles, and dates</strong><br>
+        • Add <strong>specific numbers</strong> — $200M, 50+ apps, 20% reduction<br>
+        • List your <strong>technical skills</strong> — Java, Spring Boot, Kafka, Kubernetes<br>
+        • Mention <strong>domain expertise</strong> — healthcare, HIPAA, PCI, payments<br>
+        • Keep it <strong>under 400 words</strong> for best Claude API results
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: COMPANIES -->
+  <div id="tab-companies" class="panel">
+    <div class="ptitle">Company Tracker</div>
+    <div class="psub">Companies collected from your job searches. Track status, run phase 2 searches by company, and expand into manager & business architect roles when ready.</div>
+
+    <!-- Stats bar -->
+    <div class="stat-bar" id="co-stats"></div>
+
+    <!-- Phase 2 Search Panel -->
+    <div class="phase2-card">
+      <div class="phase2-title">🚀 Phase 2 — Search by Company</div>
+      <div class="phase2-sub">Select companies below, choose a role type, and search for those specific openings. Use this when you're ready to expand beyond architect roles.</div>
+      <div class="grid2" style="margin-bottom:12px">
+        <div class="field">
+          <label>Role Category</label>
+          <select id="p2-role">
+            <optgroup label="── Architecture (Phase 1)">
+              <option value="Principal Architect">Principal Architect</option>
+              <option value="Enterprise Architect">Enterprise Architect</option>
+              <option value="Software Architect">Software Architect</option>
+            </optgroup>
+            <optgroup label="── Engineering Leadership (Phase 2)">
+              <option value="Engineering Manager">Engineering Manager</option>
+              <option value="Senior Engineering Manager">Senior Engineering Manager</option>
+              <option value="Director of Engineering">Director of Engineering</option>
+            </optgroup>
+            <optgroup label="── Business & Strategy (Phase 2)">
+              <option value="Business Architect">Business Architect</option>
+              <option value="Solutions Manager">Solutions Manager</option>
+              <option value="Technical Program Manager">Technical Program Manager</option>
+              <option value="IT Strategy Manager">IT Strategy Manager</option>
+            </optgroup>
+            <optgroup label="── Management (Phase 2)">
+              <option value="Manager Software Engineering">Manager Software Engineering</option>
+              <option value="Platform Engineering Manager">Platform Engineering Manager</option>
+              <option value="Technology Manager">Technology Manager</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="field">
+          <label>Location</label>
+          <select id="p2-loc">
+            <option value="remote">Remote (US)</option>
+            <option value="Phoenix, AZ">Phoenix, AZ</option>
+            <option value="Phoenix AZ OR remote">Phoenix or Remote</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-navy" id="btn-p2" onclick="phase2Search()">🔍 Search Selected Companies</button>
+        <button class="btn btn-gold btn-sm" onclick="selectAllCo()">Select All</button>
+        <button class="btn btn-sm" style="border:1px solid var(--border);background:#fff" onclick="clearSelCo()">Clear Selection</button>
+        <span id="sel-count" style="font-size:12px;color:var(--muted)">No companies selected</span>
+      </div>
+      <div id="p2-results" style="margin-top:14px"></div>
+    </div>
+
+    <!-- Manual add -->
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon">➕</div> Add Company Manually</div>
+      <div class="add-co-row">
+        <input type="text" id="co-add-name" placeholder="Company name e.g. Banner Health, Honeywell...">
+        <button class="btn btn-navy btn-sm" onclick="addCompanyManual()">Add</button>
+      </div>
+    </div>
+
+    <!-- Company list -->
+    <div id="co-list">
+      <div class="empty-state">
+        <strong>No companies yet</strong>
+        Run a Live Job Search — companies appear here automatically.<br>Or add them manually above.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: LEARNING HUB -->
+  <div id="tab-hub" class="panel">
+    <div class="ptitle">Learning Hub</div>
+    <div class="psub">Skills from your job searches. Add your resources — Udemy, YouTube, AWS, Claude. Track progress to interviews.</div>
+
+    <!-- Daily reminder banner -->
+    <div id="hub-reminder" style="display:none"></div>
+
+    <!-- Resume update recommendations panel -->
+    <div id="resume-reco-panel" style="display:none;margin-bottom:16px">
+      <div style="background:linear-gradient(135deg,#0f1f3d,#1a3260);border-radius:12px;padding:18px 20px;color:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px">
+          <div>
+            <div style="font-family:'DM Serif Display',serif;color:var(--gold);font-size:15px;margin-bottom:4px">📄 Resume Update Recommendations</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.5)">Based on your interview prep progress — skills you've demonstrated confidence in</div>
+          </div>
+          <button onclick="document.getElementById('resume-reco-panel').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:16px;flex-shrink:0">✕</button>
+        </div>
+        <div id="resume-reco-list" style="margin-bottom:14px"></div>
+        <button class="btn btn-gold" id="btn-gen-reco" onclick="generateResumeRecos()">✨ Generate Resume Bullet Suggestions</button>
+        <div id="reco-output" style="display:none;background:rgba(255,255,255,.06);border-radius:8px;padding:14px;margin-top:12px;font-size:13px;color:rgba(255,255,255,.85);white-space:pre-wrap;line-height:1.7;max-height:320px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
+      <div style="flex:1;display:flex;gap:8px;flex-wrap:wrap" id="hub-filters-wrap">
+        <button class="hub-filter active" onclick="filterHub('all',this)">All Skills</button>
+        <button class="hub-filter" onclick="filterHub('notstarted',this)">Not Started</button>
+        <button class="hub-filter" onclick="filterHub('inprogress',this)">In Progress</button>
+        <button class="hub-filter" onclick="filterHub('done',this)">Completed</button>
+      </div>
+      <button class="btn btn-navy btn-sm" onclick="importSkillsFromJobs()">⬇ Import from Job Search</button>
+      <button class="btn btn-gold btn-sm" onclick="checkResumeReady()">📄 Resume Ready?</button>
+    </div>
+
+    <div class="add-skill-row">
+      <input type="text" id="hub-skill-input" placeholder="Add a skill e.g. AWS Well-Architected, Istio, Spring Boot...">
+      <select id="hub-skill-prof" style="border:1px solid var(--border);border-radius:7px;padding:8px 11px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:#fff;outline:none">
+        <option value="beginner">Beginner</option>
+        <option value="intermediate">Intermediate</option>
+        <option value="expert">Expert goal</option>
+      </select>
+      <button class="btn btn-navy btn-sm" onclick="addSkillManual()">+ Add</button>
+    </div>
+
+    <div id="hub-stats" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px"></div>
+    <div class="skill-hub-grid" id="hub-grid"></div>
+  </div>
+
+  <!-- TAB: INTERVIEW PREP -->
+  <div id="tab-exam" class="panel">
+    <div class="ptitle">Interview Prep</div>
+    <div class="psub">Random questions generated by Claude based on your skills and job targets. Answer, get feedback, track readiness.</div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+      <div class="exam-stat"><div class="exam-stat-n" id="eq-total">0</div><div class="exam-stat-l">Questions done</div></div>
+      <div class="exam-stat"><div class="exam-stat-n" id="eq-good">0</div><div class="exam-stat-l">Strong answers</div></div>
+      <div class="exam-stat"><div class="exam-stat-n" id="eq-skip">0</div><div class="exam-stat-l">To revisit</div></div>
+      <div class="exam-stat"><div class="exam-stat-n" id="eq-streak">0</div><div class="exam-stat-l">Day streak 🔥</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon">⚙️</div> Question Settings</div>
+      <div class="grid2" style="margin-bottom:12px">
+        <div class="field">
+          <label>Question Type</label>
+          <select id="eq-type">
+            <option value="mixed">Mixed (recommended)</option>
+            <option value="technical">Technical / Architecture</option>
+            <option value="behavioral">Behavioral (STAR format)</option>
+            <option value="scenario">Scenario-based</option>
+            <option value="governance">Governance & ARB</option>
+            <option value="leadership">Leadership & Stakeholder</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Difficulty</label>
+          <select id="eq-diff">
+            <option value="mixed">Mixed</option>
+            <option value="easy">Warm-up</option>
+            <option value="medium">Standard interview</option>
+            <option value="hard">Senior / VP panel</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- AI Model selector -->
+      <div class="field" style="margin-bottom:14px">
+        <label>AI Model for Questions</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+          <button class="model-btn active" id="mb-claude" onclick="selectModel('claude',this)" title="Claude Sonnet — nuanced, strong on governance & behavioral depth">
+            <span style="font-size:14px">🟣</span>
+            <div><div style="font-size:12px;font-weight:500">Claude</div><div style="font-size:10px;opacity:.65">Governance · Behavioral</div></div>
+          </button>
+          <button class="model-btn" id="mb-gemini" onclick="selectModel('gemini',this)" title="Gemini Pro — breadth, enterprise patterns, Google ecosystem" id="mb-gem">
+            <span style="font-size:14px">🔵</span>
+            <div><div style="font-size:12px;font-weight:500">Gemini</div><div style="font-size:10px;opacity:.65">Breadth · Enterprise</div></div>
+          </button>
+          <button class="model-btn" id="mb-both" onclick="selectModel('both',this)" title="Both models — Claude generates, Gemini scores. Best for honest feedback.">
+            <span style="font-size:14px">⚡</span>
+            <div><div style="font-size:12px;font-weight:500">Both</div><div style="font-size:10px;opacity:.65">Claude Q · Gemini scores</div></div>
+          </button>
+        </div>
+        <div id="gem-key-warning" style="display:none;font-size:11px;color:var(--amber);margin-top:6px">⚠ Gemini key not set — go to 🔑 Keys in the top bar to add it.</div>
+      </div>
+
+      <div class="field">
+        <label>Focus on these skills (click to toggle)</label>
+        <div id="eq-skill-chips" style="margin-top:6px"></div>
+      </div>
+      <button class="btn btn-navy" id="btn-genq" onclick="generateQuestion()">🎲 Generate Question</button>
+    </div>
+
+    <div id="question-area" style="display:none">
+
+      <!-- Persona tabs — only shown for Technical type -->
+      <div id="persona-bar" style="display:none;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Same skill — 3 interviewer perspectives. Pick who you're practicing for:</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="persona-btn active" id="pb-dev" onclick="switchPersona('developer',this)">
+            <span style="font-size:15px">👨‍💻</span>
+            <div>
+              <div style="font-size:12px;font-weight:500">Developer</div>
+              <div style="font-size:10px;opacity:.7">Wants depth & code</div>
+            </div>
+          </button>
+          <button class="persona-btn" id="pb-arch" onclick="switchPersona('architect',this)">
+            <span style="font-size:15px">🏛️</span>
+            <div>
+              <div style="font-size:12px;font-weight:500">Architect</div>
+              <div style="font-size:10px;opacity:.7">Wants design thinking</div>
+            </div>
+          </button>
+          <button class="persona-btn" id="pb-lead" onclick="switchPersona('leader',this)">
+            <span style="font-size:15px">📊</span>
+            <div>
+              <div style="font-size:12px;font-weight:500">Leader / VP</div>
+              <div style="font-size:10px;opacity:.7">Wants impact & strategy</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div class="question-block">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+          <div>
+            <div class="q-type" id="q-type-label">Technical</div>
+            <div id="q-persona-badge" style="display:none;font-size:10px;color:rgba(255,255,255,.45);margin-top:2px"></div>
+          </div>
+          <div class="q-skill" id="q-skill-tag" style="margin-top:0;text-align:right"></div>
+        </div>
+        <div class="q-text" id="q-text" style="margin-top:10px">Loading...</div>
+        <div id="q-persona-hint" style="display:none;margin-top:10px;font-size:12px;color:rgba(255,255,255,.5);font-style:italic;border-top:1px solid rgba(255,255,255,.1);padding-top:8px"></div>
+      </div>
+
+      <textarea class="answer-area" id="q-answer" placeholder="Type your answer here... use the STAR method for behavioral questions (Situation, Task, Action, Result)"></textarea>
+      <div class="q-actions">
+        <button class="btn btn-navy" id="btn-feedback" onclick="getFeedback()">✅ Get Feedback</button>
+        <button class="btn btn-gold" onclick="generateQuestion()">⏭ Skip / Next</button>
+        <button class="btn btn-sm" style="border:1px solid var(--border);background:#fff" onclick="markRetry()">🔁 Save to Retry</button>
+        <span id="feedback-status" style="font-size:12px;color:var(--muted)"></span>
+      </div>
+      <div id="feedback-box" style="display:none" class="feedback-box"></div>
+      <div id="resume-alert" style="display:none;margin-top:12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+          <div>
+            <div style="font-size:13px;font-weight:500;color:#15803d;margin-bottom:4px">🎉 Strong answer — time to update your resume!</div>
+            <div id="resume-alert-text" style="font-size:12px;color:#166534;line-height:1.6"></div>
+          </div>
+          <button onclick="document.getElementById('resume-alert').style.display='none'" style="background:none;border:none;color:#15803d;cursor:pointer;font-size:16px;flex-shrink:0">✕</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-sm" style="background:#15803d;color:#fff;border:none" onclick="goToResumeReco()">📄 See Resume Suggestions</button>
+          <button class="btn btn-sm" style="background:#fff;color:#15803d;border:1px solid #bbf7d0" onclick="document.getElementById('resume-alert').style.display='none'">Later</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="exam-history" style="margin-top:20px;display:none">
+      <div class="card-hdr" style="margin-bottom:10px"><div class="card-icon">📖</div> Recent Questions</div>
+      <div id="hist-list"></div>
+    </div>
+  </div>
+
+</div><!-- end main-app -->
+
+<script>
+const DEFAULT_RESUME = `Principal Enterprise Architect, 20+ years experience.
+Current: Wells Fargo (Principal Architect/Director, June 2023–present) — domain transformation architecture for lending & credit card platforms, ARB/ADR governance, 20% legacy decommission, multi-billion dollar portfolio.
+Previous: JPMorgan Chase (Lead Architect & Manager, 2021–2023) — payments/POS modernization, Helix microservices on AWS, patent pending for Remote POS Terminal Authentication.
+Previous: American Express (Solutions Architect & Manager, 2011–2021, 10 years) — $200M+ business impact, 100+ APIs modernized, Top-50 Cloud Migration (50+ apps), Edward P. Gilligan Award for Innovation.
+Previous: Wolters Kluwer Health (Sr Software Engineer/Lead, 2007–2011) — longitudinal patient study analytics platform for pharma clients, QlikView BI integration, mainframe-to-portal migration.
+Early career: Multivision, Cognizant, HCL, Megasoft (2000–2007) — Lehman Brothers, Arizona State Retirement System.
+Technical: Java, Spring Boot, Istio (Service Mesh), Kafka, Docker, Kubernetes, Spark, Hadoop, Prometheus, Grafana, Jenkins, GitHub Copilot.
+Domain: Healthcare (prescriber, payer, claims, HIPAA), Financial Services (PCI, SOX), Payments, Risk, Data Platforms, AI/ML.
+Education: MCA Bangalore University, Sun Certified Enterprise Architect (SCEA), Harvard Leadership Academy, ArchiMate.`;
+
+let ANT_KEY = '', RAPID_KEY = '', GEM_KEY = '', callCount = 0, allJobs = [];
+let activeModel = 'claude'; // 'claude' | 'gemini' | 'both'
+
+function selectModel(model, btn){
+  if((model==='gemini'||model==='both') && !GEM_KEY){
+    document.getElementById('gem-key-warning').style.display='block';
+  } else {
+    document.getElementById('gem-key-warning').style.display='none';
+  }
+  activeModel = model;
+  document.querySelectorAll('.model-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function callGemini(prompt){
+  if(!GEM_KEY) throw new Error('Gemini API key not set. Click 🔑 Keys to add it.');
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEM_KEY}`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      contents:[{parts:[{text:prompt}]}],
+      generationConfig:{maxOutputTokens:1200,temperature:0.7}
+    })
+  });
+  if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e.error?.message||`Gemini API error ${res.status}`); }
+  const data = await res.json();
+  updateCounter();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from Gemini.';
+}
+
+// ── COMPANY TRACKER ──
+function getCompanies(){ return JSON.parse(localStorage.getItem('gk_companies')||'[]'); }
+function saveCompanies(list){ localStorage.setItem('gk_companies', JSON.stringify(list)); }
+
+function addCompanyFromJob(job){
+  const list = getCompanies();
+  if(list.find(c=>c.name.toLowerCase()===job.company.toLowerCase())) return;
+  list.push({
+    name: job.company,
+    domain: job.domain||'general',
+    source: job.source||'JSearch',
+    addedDate: new Date().toLocaleDateString(),
+    status: 'watching',
+    roles: [job.title],
+    bestScore: job.score
+  });
+  saveCompanies(list);
+  renderCompanies();
+}
+
+function addCompanyManual(){
+  const name = document.getElementById('co-add-name').value.trim();
+  if(!name){ alert('Enter a company name.'); return; }
+  const list = getCompanies();
+  if(list.find(c=>c.name.toLowerCase()===name.toLowerCase())){ alert('Already in your list.'); return; }
+  list.push({ name, domain:'general', source:'Manual', addedDate:new Date().toLocaleDateString(), status:'watching', roles:[], bestScore:null });
+  saveCompanies(list);
+  document.getElementById('co-add-name').value='';
+  renderCompanies();
+}
+
+function updateStatus(name, status){
+  const list = getCompanies();
+  const co = list.find(c=>c.name===name);
+  if(co){ co.status=status; saveCompanies(list); renderCompanies(); }
+}
+
+function removeCo(name){
+  if(!confirm(`Remove ${name} from your tracker?`)) return;
+  const list = getCompanies().filter(c=>c.name!==name);
+  saveCompanies(list);
+  renderCompanies();
+}
+
+const STATUS_COLORS = {
+  watching:  {bg:'#f1f5f9',color:'#475569',label:'Watching'},
+  interested:{bg:'#dbeafe',color:'#1e40af',label:'Interested'},
+  applied:   {bg:'#fef3c7',color:'#92400e',label:'Applied'},
+  interview: {bg:'#ede9fe',color:'#4c1d95',label:'Interview'},
+  offer:     {bg:'#dcfce7',color:'#15803d',label:'Offer 🎉'},
+  pass:      {bg:'#fee2e2',color:'#991b1b',label:'Passed'}
+};
+
+function renderCompanies(){
+  const list = getCompanies();
+
+  // Stats bar
+  const stats = Object.entries(STATUS_COLORS).map(([k,v])=>{
+    const n = list.filter(c=>c.status===k).length;
+    return n ? `<div class="stat-pill">${v.label} <span>${n}</span></div>` : '';
+  }).join('');
+  document.getElementById('co-stats').innerHTML = list.length
+    ? `<div class="stat-pill">Total <span>${list.length}</span></div>${stats}`
+    : '';
+
+  if(!list.length){
+    document.getElementById('co-list').innerHTML=`<div class="empty-state"><strong>No companies yet</strong>Run a Live Job Search — companies appear here automatically.<br>Or add them manually above.</div>`;
+    return;
+  }
+
+  // Sort: interested first, then applied, then watching
+  const order = {offer:0,interview:1,applied:2,interested:3,watching:4,pass:5};
+  const sorted = [...list].sort((a,b)=>(order[a.status]||4)-(order[b.status]||4));
+
+  document.getElementById('co-list').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-size:12px;color:var(--muted)">${list.length} companies tracked</div>
+      <button class="btn btn-sm" style="border:1px solid var(--border);background:#fff;font-size:11px" onclick="if(confirm('Clear all companies?')){localStorage.removeItem('gk_companies');renderCompanies()}">Clear All</button>
+    </div>
+    <div class="co-grid">
+      ${sorted.map(co=>{
+        const sc = STATUS_COLORS[co.status]||STATUS_COLORS.watching;
+        const initials = co.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+        const scoreHTML = co.bestScore!=null ? `<span class="tag ${co.bestScore>=70?'tag-g':co.bestScore>=50?'tag-a':'tag-r'}">${co.bestScore}% match</span>` : '';
+        return `
+        <div class="co-card">
+          <input type="checkbox" class="co-checkbox co-sel" data-name="${co.name}" onchange="updateSelCount()">
+          <div class="co-logo">${initials}</div>
+          <div class="co-body">
+            <div class="co-name">${co.name}</div>
+            <div class="co-meta">📰 ${co.source} &nbsp;·&nbsp; 🗓 ${co.addedDate} &nbsp;·&nbsp; ${co.domain}</div>
+            <div class="co-tags" style="margin-top:4px">
+              ${scoreHTML}
+              ${co.roles.slice(0,2).map(r=>`<span class="tag tag-n">${r}</span>`).join('')}
+            </div>
+          </div>
+          <div class="co-actions">
+            <select class="status-sel" onchange="updateStatus('${co.name}',this.value)" style="background:${sc.bg};color:${sc.color}">
+              ${Object.entries(STATUS_COLORS).map(([k,v])=>`<option value="${k}"${co.status===k?' selected':''}>${v.label}</option>`).join('')}
+            </select>
+            <button class="btn btn-gold btn-sm" onclick="prefillApply('${co.name.replace(/'/g,"\\'")}','')">📋 Guide</button>
+            <button class="btn btn-sm" style="border:1px solid var(--border);background:#fff;color:var(--red)" onclick="removeCo('${co.name.replace(/'/g,"\\'")}')">✕</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function updateSelCount(){
+  const n = document.querySelectorAll('.co-sel:checked').length;
+  document.getElementById('sel-count').textContent = n ? `${n} compan${n>1?'ies':'y'} selected` : 'No companies selected';
+}
+
+function selectAllCo(){
+  document.querySelectorAll('.co-sel').forEach(cb=>cb.checked=true);
+  updateSelCount();
+}
+
+function clearSelCo(){
+  document.querySelectorAll('.co-sel').forEach(cb=>cb.checked=false);
+  updateSelCount();
+}
+
+async function phase2Search(){
+  const selected = [...document.querySelectorAll('.co-sel:checked')].map(cb=>cb.dataset.name);
+  if(!selected.length){ alert('Select at least one company first.'); return; }
+  const role = document.getElementById('p2-role').value;
+  const loc = document.getElementById('p2-loc').value;
+
+  setBtn('btn-p2',true,'🔍 Search Selected Companies');
+  const out = document.getElementById('p2-results');
+  out.innerHTML = `<div class="loading-card">Searching ${selected.length} compan${selected.length>1?'ies':'y'} for ${role} roles...</div>`;
+
+  try {
+    const results = await Promise.all(selected.map(async company => {
+      const params = new URLSearchParams({
+        query: `${role} ${company}`,
+        location: loc,
+        page:'1', num_pages:'1', date_posted:'month'
+      });
+      const res = await fetch(`https://jsearch.p.rapidapi.com/search?${params}`,{
+        headers:{'X-RapidAPI-Key':RAPID_KEY,'X-RapidAPI-Host':'jsearch.p.rapidapi.com'}
+      });
+      const data = await res.json();
+      return { company, jobs: (data.data||[]).filter(j=>j.employer_name.toLowerCase().includes(company.toLowerCase().split(' ')[0])).slice(0,3) };
+    }));
+
+    const hasResults = results.some(r=>r.jobs.length>0);
+    if(!hasResults){
+      out.innerHTML='<div class="loading-card">No openings found at selected companies for this role right now. Try a different role or check back later.</div>';
+    } else {
+      out.innerHTML = results.filter(r=>r.jobs.length).map(r=>`
+        <div style="margin-bottom:14px">
+          <div style="font-size:13px;font-weight:500;color:var(--navy);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)">
+            ${r.company} — ${r.jobs.length} opening${r.jobs.length>1?'s':''}
+          </div>
+          ${r.jobs.map(j=>`
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="font-size:13px;font-weight:500;color:var(--text)">${j.job_title}</div>
+                <div style="font-size:11px;color:var(--muted)">${j.job_city||''} ${j.job_state||''} ${j.job_is_remote?'· Remote':''}</div>
+              </div>
+              <div style="display:flex;gap:6px">
+                <a href="${j.job_apply_link||'#'}" target="_blank"><button class="btn btn-navy btn-sm">Apply</button></a>
+                <button class="btn btn-gold btn-sm" onclick="prefillApply('${r.company.replace(/'/g,"\\'")}','${j.job_title.replace(/'/g,"\\'")}')">Guide</button>
+              </div>
+            </div>`).join('')}
+        </div>`).join('');
+    }
+  } catch(e){
+    out.innerHTML=`<div class="loading-card">❌ Error: ${e.message}</div>`;
+  }
+  setBtn('btn-p2',false,'🔍 Search Selected Companies');
+}
+
+function getResume(){ return localStorage.getItem('gk_resume') || DEFAULT_RESUME; }
+
+function saveResume(){
+  const t = document.getElementById('resume-ed').value.trim();
+  if(!t){ alert('Resume cannot be empty.'); return; }
+  localStorage.setItem('gk_resume', t);
+  showStatus('save-status','✓ Saved — all tabs updated','#15803d');
+}
+
+function resetResume(){
+  if(!confirm('Reset to default resume?')) return;
+  localStorage.removeItem('gk_resume');
+  document.getElementById('resume-ed').value = DEFAULT_RESUME;
+  showStatus('save-status','↩ Reset to default','var(--muted)');
+}
+
+function showStatus(id, msg, color){
+  const el = document.getElementById(id);
+  el.textContent = msg; el.style.color = color;
+  setTimeout(()=>{ el.textContent=''; },3000);
+}
+
+function startApp(){
+  const ant = document.getElementById('ant-key').value.trim();
+  const rapid = document.getElementById('rapid-key').value.trim();
+  const gem = document.getElementById('gem-key').value.trim();
+  const savedAnt = localStorage.getItem('gk_ant_key');
+  const savedRapid = localStorage.getItem('gk_rapid_key');
+  const savedGem = localStorage.getItem('gk_gem_key');
+  const antKey = ant || savedAnt;
+  const rapidKey = rapid || savedRapid;
+  const gemKey = gem || savedGem || '';
+
+  if(!antKey || !antKey.startsWith('sk-ant')){
+    alert('Please enter a valid Anthropic API key (sk-ant-...)'); return;
+  }
+  if(!rapidKey){
+    if(!confirm('No RapidAPI key entered — live job search will not work. Continue anyway?')) return;
+  }
+  if(ant) localStorage.setItem('gk_ant_key', ant);
+  if(rapid) localStorage.setItem('gk_rapid_key', rapid);
+  if(gem) localStorage.setItem('gk_gem_key', gem);
+  ANT_KEY = antKey; RAPID_KEY = rapidKey || ''; GEM_KEY = gemKey;
+
+  document.getElementById('resume-ed').value = getResume();
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  renderCompanies();
+  renderHub();
+  initExamTab();
+  checkDailyReminders();
+}
+
+function changeKeys(){
+  const ant = prompt('Anthropic key (leave blank to keep current):');
+  const rapid = prompt('RapidAPI key (leave blank to keep current):');
+  const gem = prompt('Gemini API key (leave blank to keep current):');
+  if(ant && ant.startsWith('sk-ant')){ localStorage.setItem('gk_ant_key',ant); ANT_KEY=ant; }
+  if(rapid){ localStorage.setItem('gk_rapid_key',rapid); RAPID_KEY=rapid; }
+  if(gem){ localStorage.setItem('gk_gem_key',gem); GEM_KEY=gem; }
+  document.getElementById('counter').textContent='✓ Keys updated';
+  setTimeout(()=>{ document.getElementById('counter').textContent=callCount+' calls'; },2000);
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  const ant = localStorage.getItem('gk_ant_key');
+  const rapid = localStorage.getItem('gk_rapid_key');
+  const gem = localStorage.getItem('gk_gem_key');
+  if(ant) document.getElementById('ant-key').value = ant;
+  if(rapid) document.getElementById('rapid-key').value = rapid;
+  if(gem) document.getElementById('gem-key').value = gem;
+  if(ant && rapid) document.getElementById('saved-notice').style.display='block';
+});
+
+function switchTab(name, el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='hub') checkDailyReminders();
+}
+
+function setBtn(id, loading, label){
+  const b = document.getElementById(id);
+  b.disabled = loading;
+  const isDark = id==='btn-learn';
+  b.innerHTML = loading ? `<span class="spin${isDark?' dk':''}"></span> Working...` : label;
+}
+
+function updateCounter(){
+  callCount++;
+  document.getElementById('counter').textContent = callCount+' API call'+(callCount>1?'s':'');
+}
+
+async function callClaude(prompt){
+  const res = await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':ANT_KEY,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body: JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:1200,
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+  if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e.error?.message||`API error ${res.status}`); }
+  const data = await res.json();
+  updateCounter();
+  return data.content?.map(c=>c.text||'').join('') || 'No response.';
+}
+
+// ── LIVE JOB SEARCH ──
+
+async function testRapidKey(){
+  const box = document.getElementById('api-test-result');
+  box.style.display='block';
+  box.style.background='#f8fafc';
+  box.style.border='1px solid var(--border)';
+  box.style.color='var(--text)';
+  box.textContent='🔧 Testing your RapidAPI key...';
+
+  if(!RAPID_KEY){
+    box.style.background='#fef3c7'; box.style.color='#92400e';
+    box.innerHTML='⚠ No RapidAPI key found in this session. Click 🔑 Keys in the top bar to add it.';
+    return;
+  }
+
+  try{
+    // Minimal test call — 1 result to save quota
+    const res = await fetch('https://jsearch.p.rapidapi.com/search?query=software+engineer&page=1&num_pages=1',{
+      headers:{
+        'X-RapidAPI-Key': RAPID_KEY,
+        'X-RapidAPI-Host': 'jsearch.p.rapidapi.com'
+      }
+    });
+
+    if(res.ok){
+      const data = await res.json();
+      const count = data.data?.length || 0;
+      box.style.background='#f0fdf4'; box.style.border='1px solid #bbf7d0'; box.style.color='#15803d';
+      box.innerHTML=`✅ <strong>API key works!</strong> Connected to JSearch — got ${count} test result${count!==1?'s':''}. You're ready to search.`;
+    } else {
+      const errData = await res.json().catch(()=>({}));
+      const status = res.status;
+      box.style.background='#fee2e2'; box.style.border='1px solid #fca5a5'; box.style.color='#991b1b';
+
+      const hints = {
+        401: '401 Unauthorized — your key is incorrect or expired. Go to rapidapi.com, find your JSearch subscription, and copy the key again from the "Header Parameters" section.',
+        403: '403 Forbidden — key is valid but you may not be subscribed to JSearch. Go to rapidapi.com → search JSearch → click Subscribe → choose Free plan.',
+        429: '429 Too Many Requests — you have hit the free tier limit (200 calls/month). Wait until next month or upgrade your plan.',
+        500: '500 Server Error — JSearch API is having issues. Try again in a few minutes.'
+      };
+
+      box.innerHTML = `❌ <strong>Error ${status}</strong> — ${hints[status] || (errData.message || 'Unknown error. Check your key and subscription at rapidapi.com.')}`;
+    }
+  } catch(e){
+    box.style.background='#fee2e2'; box.style.border='1px solid #fca5a5'; box.style.color='#991b1b';
+    if(e.message.includes('Failed to fetch') || e.message.includes('NetworkError')){
+      box.innerHTML='❌ <strong>Network error</strong> — browser blocked the request. Try: (1) Disable any VPN, (2) Disable ad blockers for this page, (3) Try in Chrome Incognito mode.';
+    } else {
+      box.innerHTML='❌ <strong>Error:</strong> ' + e.message;
+    }
+  }
+}
+
+async function searchJobs(){
+  const role = document.getElementById('j-role').value;
+  const loc = document.getElementById('j-loc').value;
+  const domain = document.getElementById('j-domain').value;
+  const query = domain ? `${role} ${domain}` : role;
+
+  if(!RAPID_KEY){
+    document.getElementById('api-test-result').style.display='block';
+    document.getElementById('api-test-result').style.background='#fef3c7';
+    document.getElementById('api-test-result').style.color='#92400e';
+    document.getElementById('api-test-result').innerHTML='⚠ No RapidAPI key — click 🔑 Keys in the top bar to add it, or click 🔧 Test API Key to diagnose.';
+    return;
+  }
+
+  setBtn('btn-search',true,'🔍 Search Live Jobs');
+  document.getElementById('jobs-section').style.display='block';
+  document.getElementById('filter-bar').innerHTML='';
+  document.getElementById('jobs-grid').innerHTML='<div class="loading-card">🔍 Fetching live jobs from Indeed & LinkedIn...</div>';
+  document.getElementById('api-test-result').style.display='none';
+
+  try {
+    const params = new URLSearchParams({
+      query: query,
+      location: loc,
+      page: '1',
+      num_pages: '1',
+      date_posted: 'month',
+      remote_jobs_only: loc==='remote' ? 'true' : 'false'
+    });
+
+    const jobRes = await fetch(`https://jsearch.p.rapidapi.com/search?${params}`,{
+      headers:{
+        'X-RapidAPI-Key': RAPID_KEY,
+        'X-RapidAPI-Host': 'jsearch.p.rapidapi.com'
+      }
+    });
+
+    if(!jobRes.ok){
+      const status = jobRes.status;
+      const hints = {
+        401:'Key is wrong — click 🔧 Test API Key for details.',
+        403:'Not subscribed to JSearch — go to rapidapi.com and subscribe to the free plan.',
+        429:'Free tier limit hit (200 calls/month) — wait until next month or upgrade.',
+        500:'JSearch server error — try again in a few minutes.'
+      };
+      throw new Error(`API error ${status} — ${hints[status]||'click 🔧 Test API Key to diagnose.'}`);
+    }
+
+    const jobData = await jobRes.json();
+    const jobs = (jobData.data || []).slice(0,8);
+
+    if(!jobs.length){
+      document.getElementById('jobs-grid').innerHTML='<div class="loading-card">No jobs found. Try a different role or location.</div>';
+      setBtn('btn-search',false,'🔍 Search Live Jobs');
+      return;
+    }
+
+    // Step 2: Show placeholder cards while Claude analyzes
+    document.getElementById('jobs-grid').innerHTML = jobs.map((_,i)=>
+      `<div class="loading-card" id="jc-${i}">⏳ Analyzing job ${i+1} of ${jobs.length}...</div>`
+    ).join('');
+
+    // Step 3: Analyze each job with Claude
+    allJobs = [];
+    const analyzed = await Promise.all(jobs.map(async (job, i) => {
+      const jdSnippet = (job.job_description||'').substring(0,800);
+      const skills = job.job_required_skills || [];
+      const result = await callClaude(`You analyze a job against a candidate resume. Be concise.
+
+CANDIDATE: ${getResume()}
+
+JOB: ${job.job_title} at ${job.employer_name}
+LOCATION: ${job.job_city||''} ${job.job_state||''} ${job.job_is_remote?'(Remote)':''}
+DESCRIPTION: ${jdSnippet}
+SKILLS LISTED: ${skills.join(', ')||'not specified'}
+
+Reply in EXACTLY this format:
+
+SCORE: [0-100]
+TOP_SKILLS: [comma list of 5 key skills this role needs]
+SKILL_MATCH: [comma list of 2-3 skills candidate already has for this role]
+SKILL_GAPS: [comma list of 2-3 skills candidate needs to build]
+RESOURCES: [for each skill gap, one line: SKILL | RESOURCE_NAME | URL_OR_PLATFORM | beginner/intermediate/expert]
+VERDICT: [one sentence why or why not to apply]`);
+
+      const score = parseInt((result.match(/SCORE:\s*(\d+)/)||[])[1]||50);
+      const topSkills = ((result.match(/TOP_SKILLS:\s*([^\n]+)/)||[])[1]||'').split(',').map(s=>s.trim()).filter(Boolean);
+      const skillMatch = ((result.match(/SKILL_MATCH:\s*([^\n]+)/)||[])[1]||'').split(',').map(s=>s.trim()).filter(Boolean);
+      const skillGaps = ((result.match(/SKILL_GAPS:\s*([^\n]+)/)||[])[1]||'').split(',').map(s=>s.trim()).filter(Boolean);
+      const resourcesRaw = ((result.match(/RESOURCES:\s*([\s\S]+?)(?=VERDICT:|$)/)||[])[1]||'').trim();
+      const verdict = ((result.match(/VERDICT:\s*([^\n]+)/)||[])[1]||'').trim();
+
+      const resources = resourcesRaw.split('\n').map(line=>{
+        const parts = line.split('|').map(p=>p.trim());
+        return parts.length>=3 ? {skill:parts[0], name:parts[1], url:parts[2], level:parts[3]||'beginner'} : null;
+      }).filter(Boolean);
+
+      return {
+        id: i,
+        title: job.job_title,
+        company: job.employer_name,
+        location: [job.job_city, job.job_state, job.job_is_remote?'Remote':null].filter(Boolean).join(', '),
+        source: job.job_publisher||'Indeed',
+        applyUrl: job.job_apply_link || job.job_google_link || '#',
+        domain: domain || 'general',
+        score, topSkills, skillMatch, skillGaps, resources, verdict,
+        postedAt: job.job_posted_at_timestamp ? new Date(job.job_posted_at_timestamp*1000).toLocaleDateString() : 'Recent'
+      };
+    }));
+
+    allJobs = analyzed.sort((a,b)=>b.score-a.score);
+    renderJobs(allJobs);
+    buildFilters(allJobs);
+    // Auto-collect companies into tracker
+    allJobs.forEach(j => addCompanyFromJob(j));
+
+  } catch(e){
+    document.getElementById('jobs-grid').innerHTML=`<div class="loading-card">❌ Error: ${e.message}<br><br>If this is a RapidAPI error, check your key at rapidapi.com and ensure you subscribed to JSearch.</div>`;
+  }
+
+  setBtn('btn-search',false,'🔍 Search Live Jobs');
+}
+
+function scoreClass(s){ return s>=70?'high':s>=50?'mid':'low'; }
+
+function getAppliedJobs(){ return JSON.parse(localStorage.getItem('gk_applied_jobs')||'[]'); }
+
+function toggleApplied(jobKey, btn){
+  const applied = getAppliedJobs();
+  const idx = applied.indexOf(jobKey);
+  if(idx===-1){
+    applied.push(jobKey);
+    btn.textContent = '✓ Applied';
+    btn.classList.add('is-applied');
+    btn.closest('.job-card').classList.add('applied-card');
+    btn.closest('.job-card').querySelector('.applied-badge-slot').innerHTML = '<span class="applied-badge">✓ Applied</span>';
+  } else {
+    applied.splice(idx,1);
+    btn.textContent = '○ Mark Applied';
+    btn.classList.remove('is-applied');
+    btn.closest('.job-card').classList.remove('applied-card');
+    btn.closest('.job-card').querySelector('.applied-badge-slot').innerHTML = '';
+  }
+  localStorage.setItem('gk_applied_jobs', JSON.stringify(applied));
+}
+
+function renderJobs(jobs){
+  if(!jobs.length){
+    document.getElementById('jobs-grid').innerHTML='<div class="loading-card">No jobs match this filter.</div>';
+    return;
+  }
+  const applied = getAppliedJobs();
+  document.getElementById('jobs-grid').innerHTML = jobs.map(j=>{
+    const jk = j.company+'_'+j.title;
+    const isApplied = applied.includes(jk);
+    const sc = scoreClass(j.score);
+
+    // Skills column
+    const skillsHTML = j.topSkills.map(s=>{
+      const have = j.skillMatch.some(m=>m.toLowerCase().includes(s.toLowerCase())||s.toLowerCase().includes(m.toLowerCase()));
+      return `<span class="skill-dot ${have?'skill-have':'skill-gap'}">${have?'✓':'△'} ${s}</span>`;
+    }).join('');
+
+    // Build skills column
+    const buildHTML = j.resources.slice(0,3).map(r=>{
+      const lvl = r.level[0]==='b'?'b':r.level[0]==='e'?'e':'i';
+      const linkPart = r.url && r.url.startsWith('http')
+        ? `<a href="${r.url}" target="_blank" rel="noopener">${r.name}</a>`
+        : `<span>${r.name}</span>`;
+      return `<div class="resource-compact">
+        <span class="resource-level level-${lvl}">${r.level.substring(0,3)}</span>
+        <span><strong>${r.skill}:</strong> ${linkPart}</span>
+      </div>`;
+    }).join('') || '<div style="font-size:11px;color:var(--muted)">No gaps identified — strong match</div>';
+
+    return `
+    <div class="job-card${isApplied?' applied-card':''}" id="jc-${j.id}">
+      <div class="job-card-header">
+        <div class="job-title-wrap">
+          <div class="job-title" title="${j.title}">${j.title}</div>
+          <div class="job-company">${j.company}</div>
+          <div class="job-meta">📍 ${j.location} · 🗓 ${j.postedAt} · 📰 ${j.source}</div>
+        </div>
+        <div class="job-header-right">
+          <div class="applied-badge-slot">${isApplied?'<span class="applied-badge">✓ Applied</span>':''}</div>
+          <div class="match-ring ${sc}">${j.score}</div>
+        </div>
+      </div>
+
+      <div class="job-cols">
+        <div class="job-col">
+          <div class="job-col-label">✦ Required skills</div>
+          <div>${skillsHTML || '<span style="font-size:11px;color:var(--muted)">Not specified</span>'}</div>
+        </div>
+        <div class="job-col">
+          <div class="job-col-label">📚 Build these skills</div>
+          ${buildHTML}
+        </div>
+        <div class="job-col">
+          <div class="job-col-label">💡 AI verdict</div>
+          <div class="verdict-col">${j.verdict}</div>
+        </div>
+      </div>
+
+      <div class="job-footer">
+        <a href="${j.applyUrl}" target="_blank" rel="noopener"><button class="btn btn-navy btn-sm">Apply Now →</button></a>
+        <button class="applied-toggle${isApplied?' is-applied':''}" onclick="toggleApplied('${jk.replace(/'/g,"\'")}', this)">${isApplied?'✓ Applied':'○ Mark Applied'}</button>
+        <button class="btn btn-gold btn-sm" onclick="prefillApply('${j.company.replace(/'/g,"\'")}','${j.title.replace(/'/g,"\'")}')">📋 Guide</button>
+        <button class="btn btn-sm" style="border:1px solid var(--border);background:#fff" onclick="prefillMatch(${j.id})">📊 Analyze</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildFilters(jobs){
+  const roles = [...new Set(jobs.map(j=>j.title.split(' ').slice(-1)[0]))];
+  const scores = ['All','High match (70+)','Good match (50-69)','Stretch (<50)'];
+  let html = scores.map((s,i)=>`<button class="filter-btn${i===0?' active':''}" onclick="filterJobs('score','${s}',this)">${s}</button>`).join('');
+  html += `<span class="results-count" id="results-count">${jobs.length} roles found</span>`;
+  document.getElementById('filter-bar').innerHTML = html;
+}
+
+function filterJobs(type, val, btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  let filtered = allJobs;
+  if(val==='High match (70+)') filtered = allJobs.filter(j=>j.score>=70);
+  else if(val==='Good match (50-69)') filtered = allJobs.filter(j=>j.score>=50&&j.score<70);
+  else if(val==='Stretch (<50)') filtered = allJobs.filter(j=>j.score<50);
+  document.getElementById('results-count').textContent = filtered.length+' roles shown';
+  renderJobs(filtered);
+}
+
+function prefillApply(company, role){
+  document.getElementById('a-company').value = company;
+  document.getElementById('a-role').value = role;
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-apply').classList.add('active');
+  document.querySelectorAll('.nav-tab')[2].classList.add('active');
+}
+
+function prefillMatch(jobId){
+  const job = allJobs.find(j=>j.id===jobId);
+  if(!job) return;
+  document.getElementById('m-jd').value = `${job.title} at ${job.company}\n\nRequired skills: ${job.topSkills.join(', ')}\n\nThis role requires ${job.skillGaps.join(', ')} in addition to ${job.skillMatch.join(', ')}.`;
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-match').classList.add('active');
+  document.querySelectorAll('.nav-tab')[1].classList.add('active');
+}
+
+// ── MATCH RESUME ──
+async function matchResume(){
+  const jd = document.getElementById('m-jd').value.trim();
+  if(!jd){ alert('Please paste a job description first.'); return; }
+  setBtn('btn-match',true,'📊 Score My Resume');
+  document.getElementById('match-result').style.display='block';
+  document.getElementById('score-ring').innerHTML='';
+  document.getElementById('match-tags').innerHTML='';
+  const out = document.getElementById('match-out');
+  out.className='result-box'; out.textContent='Analyzing...';
+
+  try{
+    const result = await callClaude(`You are an expert recruiter who understands ATS systems (Workday, Eightfold, Greenhouse). Score this resume against the JD from both human and ATS perspectives.
+
+RESUME: ${getResume()}
+JD: ${jd}
+
+Reply in EXACTLY this format:
+
+SCORE: [0-100]
+VERDICT: [Best Fit / Good Fit / Stretch / Not a Fit]
+STRONG MATCHES: [item1, item2, item3]
+GAPS: [item1, item2]
+ATS KEYWORDS MISSING: [exact words from JD not in resume]
+ATS KEYWORDS PRESENT: [strong matching terms already in resume]
+TOP 3 RESUME TWEAKS:
+1. [specific change with exact wording]
+2. [specific change with exact wording]
+3. [specific change with exact wording]
+INTERVIEW ANGLE: [1 paragraph on positioning]
+APPLY: [Yes / Yes with caveats / No] — [one sentence]`);
+
+    out.textContent = result;
+    const s = parseInt((result.match(/SCORE:\s*(\d+)/)||[])[1]||0);
+    if(s){ document.getElementById('score-ring').innerHTML=`<div class="score-ring ${scoreClass(s)}"><span>${s}</span><span class="score-lbl">/ 100</span></div>`; }
+    let tags='';
+    ((result.match(/STRONG MATCHES:\s*([^\n]+)/)||[])[1]||'').split(',').forEach(t=>{tags+=`<span class="tag tag-g">✓ ${t.trim()}</span>`;});
+    ((result.match(/GAPS:\s*([^\n]+)/)||[])[1]||'').split(',').forEach(t=>{tags+=`<span class="tag tag-a">△ ${t.trim()}</span>`;});
+    document.getElementById('match-tags').innerHTML=tags;
+  }catch(e){ out.textContent='❌ Error: '+e.message; }
+  setBtn('btn-match',false,'📊 Score My Resume');
+}
+
+// ── APPLY GUIDE ──
+async function getApplyGuide(){
+  const company=document.getElementById('a-company').value||'the company';
+  const role=document.getElementById('a-role').value||'Principal Architect';
+  const jd=document.getElementById('a-jd').value;
+  const method=document.getElementById('a-method').value;
+  setBtn('btn-apply',true,'📋 Build My Action Plan');
+  const out=document.getElementById('apply-out');
+  out.className='result-box'; out.textContent='Building your plan...';
+
+  try{
+    const result = await callClaude(`You are a senior career coach for enterprise tech leaders. Create a complete application and interview plan.
+
+CANDIDATE: ${getResume()}
+ROLE: ${role} at ${company}
+KEY REQUIREMENTS: ${jd||'standard Principal Architect responsibilities'}
+METHOD: ${method}
+
+📬 BEFORE YOU APPLY — 3 specific prep steps including LinkedIn updates for recruiter AI
+✉️ APPLICATION TIPS — stand out given: ${method}
+🤖 BEAT THE ATS — 5 exact phrases from JD to mirror in resume/cover letter
+🎯 WHAT TO EMPHASIZE — top 3 talking points from this candidate's background
+❓ LIKELY QUESTIONS — 5 interview questions + one-sentence answer strategy each
+🤝 SMART QUESTIONS TO ASK — 3 questions that signal Principal-level thinking
+⚠️ WATCH OUT FOR — 1-2 concerns to address proactively
+💪 CONFIDENCE BOOST — one paragraph why this candidate is strong for this role`);
+    out.textContent=result;
+  }catch(e){ out.textContent='❌ Error: '+e.message; }
+  setBtn('btn-apply',false,'📋 Build My Action Plan');
+}
+
+// ══════════════════════════════
+// LEARNING HUB
+// ══════════════════════════════
+const PROF_COLORS = {beginner:'#1e40af',intermediate:'#92400e',expert:'#15803d'};
+const PROF_BG    = {beginner:'#dbeafe',intermediate:'#fef3c7',expert:'#dcfce7'};
+const PROG_LABELS = ['Not started','Just started','25% done','Halfway','75% done','Almost done','Completed ✓'];
+
+function getSkills(){ return JSON.parse(localStorage.getItem('gk_skills')||'[]'); }
+function saveSkills(s){ localStorage.setItem('gk_skills', JSON.stringify(s)); }
+
+function addSkillManual(){
+  const name = document.getElementById('hub-skill-input').value.trim();
+  if(!name){ alert('Enter a skill name.'); return; }
+  const prof = document.getElementById('hub-skill-prof').value;
+  addHubSkill(name, prof, 'Manual');
+  document.getElementById('hub-skill-input').value='';
+}
+
+function addHubSkill(name, proficiency, source){
+  const skills = getSkills();
+  if(skills.find(s=>s.name.toLowerCase()===name.toLowerCase())) return;
+  skills.push({ name, proficiency, source, progress:0, resources:[], addedDate:new Date().toLocaleDateString() });
+  saveSkills(skills);
+  renderHub();
+}
+
+function importSkillsFromJobs(){
+  const skills = getSkills();
+  let added = 0;
+  allJobs.forEach(j=>{
+    (j.skillGaps||[]).forEach(sk=>{
+      if(!skills.find(s=>s.name.toLowerCase()===sk.toLowerCase())){
+        skills.push({ name:sk, proficiency:'beginner', source:'Job Search', progress:0, resources:[], addedDate:new Date().toLocaleDateString() });
+        added++;
+      }
+    });
+  });
+  saveSkills(skills);
+  renderHub();
+  if(added) alert(`✓ Added ${added} skill${added>1?'s':''} from your job search results.`);
+  else alert('No new skills to import — run a Live Job Search first, or all skills are already tracked.');
+}
+
+function setSkillProgress(name, val){
+  const skills = getSkills();
+  const s = skills.find(s=>s.name===name);
+  if(s){ s.progress=val; saveSkills(skills); renderHub(); }
+}
+
+function setSkillProf(name, val){
+  const skills = getSkills();
+  const s = skills.find(s=>s.name===name);
+  if(s){ s.proficiency=val; saveSkills(skills); renderHub(); }
+}
+
+function addResource(skillName){
+  const title = document.getElementById(`res-title-${CSS.escape(skillName)}`).value.trim();
+  const type  = document.getElementById(`res-type-${CSS.escape(skillName)}`).value;
+  const url   = document.getElementById(`res-url-${CSS.escape(skillName)}`).value.trim();
+  if(!title){ alert('Enter a resource title.'); return; }
+  const skills = getSkills();
+  const s = skills.find(s=>s.name===skillName);
+  if(s){ s.resources.push({title,type,url,done:false}); saveSkills(skills); renderHub(); }
+}
+
+function toggleResource(skillName, idx){
+  const skills = getSkills();
+  const s = skills.find(s=>s.name===skillName);
+  if(s && s.resources[idx]){ s.resources[idx].done=!s.resources[idx].done; saveSkills(skills); renderHub(); }
+}
+
+function removeSkill(name){
+  if(!confirm(`Remove "${name}" from your learning hub?`)) return;
+  saveSkills(getSkills().filter(s=>s.name!==name));
+  renderHub();
+}
+
+let hubFilter = 'all';
+function filterHub(f, btn){
+  hubFilter = f;
+  document.querySelectorAll('.hub-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHub();
+}
+
+function renderHub(){
+  let skills = getSkills();
+  if(hubFilter==='notstarted') skills=skills.filter(s=>s.progress===0);
+  else if(hubFilter==='inprogress') skills=skills.filter(s=>s.progress>0&&s.progress<6);
+  else if(hubFilter==='done') skills=skills.filter(s=>s.progress===6);
+
+  const all = getSkills();
+  const done = all.filter(s=>s.progress===6).length;
+  const inprog = all.filter(s=>s.progress>0&&s.progress<6).length;
+  document.getElementById('hub-stats').innerHTML = all.length ? `
+    <div class="exam-stat"><div class="exam-stat-n">${all.length}</div><div class="exam-stat-l">Total skills</div></div>
+    <div class="exam-stat"><div class="exam-stat-n">${inprog}</div><div class="exam-stat-l">In progress</div></div>
+    <div class="exam-stat"><div class="exam-stat-n">${done}</div><div class="exam-stat-l">Completed</div></div>
+    <div class="exam-stat"><div class="exam-stat-n">${Math.round(all.reduce((a,s)=>a+s.progress,0)/all.length/6*100)||0}%</div><div class="exam-stat-l">Overall</div></div>
+  ` : '';
+
+  if(!skills.length){
+    document.getElementById('hub-grid').innerHTML=`<div class="hub-empty"><strong>${hubFilter==='all'?'No skills yet':'Nothing here'}</strong>${hubFilter==='all'?'Add skills manually or click "Import from Job Search" after running a live search.':'Try a different filter.'}</div>`;
+    return;
+  }
+
+  document.getElementById('hub-grid').innerHTML = skills.map(s=>{
+    const pct = Math.round(s.progress/6*100);
+    const fillColor = s.progress===6?'#16a34a':s.progress>2?'#d97706':'#378ADD';
+    const sk = s.name;
+    const esc = sk.replace(/[^a-zA-Z0-9]/g,'-');
+    return `
+    <div class="skill-hub-card">
+      <div class="skill-hub-top">
+        <div>
+          <div class="skill-hub-name">${sk}</div>
+          <div class="skill-hub-src">Source: ${s.source} · Added ${s.addedDate}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select class="proficiency-sel" onchange="setSkillProf('${sk}',this.value)" style="background:${PROF_BG[s.proficiency]};color:${PROF_COLORS[s.proficiency]}">
+            <option value="beginner" ${s.proficiency==='beginner'?'selected':''}>Beginner goal</option>
+            <option value="intermediate" ${s.proficiency==='intermediate'?'selected':''}>Intermediate goal</option>
+            <option value="expert" ${s.proficiency==='expert'?'selected':''}>Expert goal</option>
+          </select>
+          <button onclick="removeSkill('${sk}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px">✕</button>
+        </div>
+      </div>
+
+      <div class="progress-bar-wrap">
+        <div class="progress-label"><span>Progress</span><span>${pct}% — ${PROG_LABELS[s.progress]}</span></div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width:${pct}%;background:${fillColor}"></div>
+        </div>
+        <div class="progress-steps">
+          ${PROG_LABELS.map((l,i)=>`<button class="progress-step-btn${s.progress>=i+1?' done':''}" onclick="setSkillProgress('${sk}',${i+1})" title="${l}">${i+1}</button>`).join('')}
+        </div>
+      </div>
+
+      <div class="resource-list">
+        <div class="resource-list-label">My Resources (${s.resources.length})</div>
+        ${s.resources.map((r,i)=>`
+          <div class="resource-row" style="text-decoration:${r.done?'line-through':'none'};opacity:${r.done?.6:1}">
+            <input type="checkbox" ${r.done?'checked':''} onchange="toggleResource('${sk}',${i})" style="cursor:pointer;flex-shrink:0">
+            <span class="resource-type rt-${r.type}">${r.type}</span>
+            <span style="flex:1">${r.title}</span>
+            ${r.url?`<a href="${r.url}" target="_blank" style="color:var(--navy2);font-size:11px;flex-shrink:0">Open →</a>`:''}
+          </div>`).join('') || '<div style="font-size:12px;color:var(--muted);padding:4px 0">No resources yet — add one below</div>'}
+        <div class="add-resource-row">
+          <input type="text" id="res-title-${esc}" placeholder="Resource title e.g. Udemy AWS SAA course">
+          <select id="res-type-${esc}">
+            <option value="udemy">Udemy</option>
+            <option value="youtube">YouTube</option>
+            <option value="aws">AWS</option>
+            <option value="claude">Claude Skills</option>
+            <option value="other">Other</option>
+          </select>
+          <input type="text" id="res-url-${esc}" placeholder="URL (optional)" style="width:140px;min-width:0">
+          <button class="btn btn-navy btn-sm" onclick="addResource('${sk}')">+ Add</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  updateExamChips();
+}
+
+// ══════════════════════════════
+// INTERVIEW PREP
+// ══════════════════════════════
+let examHistory = JSON.parse(localStorage.getItem('gk_exam_hist')||'[]');
+let currentQuestion = null;
+let selectedExamSkills = [];
+
+function updateExamChips(){
+  const skills = getSkills().map(s=>s.name);
+  const container = document.getElementById('eq-skill-chips');
+  if(!container) return;
+  if(!skills.length){ container.innerHTML='<span style="font-size:12px;color:var(--muted)">Add skills in Learning Hub first</span>'; return; }
+  if(!selectedExamSkills.length) selectedExamSkills = skills.slice(0,3);
+  container.innerHTML = skills.map(s=>`
+    <span class="skill-chip ${selectedExamSkills.includes(s)?'on':'off'}" onclick="toggleExamSkill('${s}')">${s}</span>
+  `).join('');
+}
+
+function toggleExamSkill(name){
+  if(selectedExamSkills.includes(name)) selectedExamSkills=selectedExamSkills.filter(s=>s!==name);
+  else selectedExamSkills.push(name);
+  updateExamChips();
+}
+
+const PERSONAS = {
+  developer: {
+    label: '👨‍💻 Developer asking',
+    hint: 'This developer wants to know if you can get into the technical weeds — implementation details, trade-offs, debugging, actual code patterns.',
+    focus: 'Focus on: specific implementation details, exact technologies, code-level trade-offs, how you would actually build it, what can go wrong technically.',
+    feedbackLens: 'as a senior developer who wants to know the candidate can discuss code-level specifics, implementation trade-offs, and technical depth — not just high-level concepts'
+  },
+  architect: {
+    label: '🏛️ Architect asking',
+    hint: 'This architect wants design thinking — patterns, principles, why you chose this approach over alternatives, scalability and resilience.',
+    focus: 'Focus on: architecture patterns, design principles, trade-off analysis, scalability, resilience, why this approach vs alternatives, system-level thinking.',
+    feedbackLens: 'as a Principal Architect who wants to see design thinking, pattern knowledge, trade-off reasoning, and system-level decision making'
+  },
+  leader: {
+    label: '📊 VP / Leader asking',
+    hint: 'This VP wants business impact — how does this connect to outcomes? How did you influence others? What was the cost/benefit? How did you handle stakeholders?',
+    focus: 'Focus on: business impact, stakeholder alignment, ROI, team influence, risk management, how architecture decisions drove business outcomes, executive communication.',
+    feedbackLens: 'as a VP of Engineering who cares about business impact, stakeholder influence, strategic thinking, and how technical decisions connect to outcomes'
+  }
+};
+
+let currentPersona = 'developer';
+let personaQuestions = {}; // stores all 3 versions
+
+async function generateQuestion(){
+  const type  = document.getElementById('eq-type').value;
+  const diff  = document.getElementById('eq-diff').value;
+  const skills = selectedExamSkills.length ? selectedExamSkills : getSkills().map(s=>s.name);
+  if(!skills.length){ alert('Add skills in the Learning Hub first.'); return; }
+
+  const isTechnical = type==='technical' || type==='mixed' || type==='scenario' || type==='governance';
+
+  setBtn('btn-genq', true, '🎲 Generate Question');
+  document.getElementById('question-area').style.display='block';
+  document.getElementById('q-text').textContent='Generating...';
+  document.getElementById('feedback-box').style.display='none';
+  document.getElementById('q-answer').value='';
+  document.getElementById('feedback-status').textContent='';
+  personaQuestions = {};
+  currentPersona = 'developer';
+
+  // Show/hide persona bar
+  const personaBar = document.getElementById('persona-bar');
+  personaBar.style.display = isTechnical ? 'block' : 'none';
+  if(isTechnical){
+    document.querySelectorAll('.persona-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('pb-dev').classList.add('active');
+  }
+
+  try{
+    const apiCall = activeModel==='gemini' ? callGemini : callClaude;
+
+    if(isTechnical){
+      const result = await apiCall(`Generate 3 versions of a technical interview question about the same skill for a Principal Enterprise Architect, each tailored to a different interviewer persona.
+
+CANDIDATE BACKGROUND: ${getResume()}
+SKILLS TO FOCUS ON: ${skills.join(', ')}
+QUESTION TYPE: ${type}
+DIFFICULTY: ${diff}
+
+Generate 3 questions about the SAME skill/topic but framed differently for each interviewer:
+
+TYPE: [Technical / Scenario / Governance]
+SKILL: [one specific skill being tested]
+
+DEVELOPER_Q: [Question a senior developer would ask — focuses on implementation details, specific technologies, code-level trade-offs, "how would you actually build this"]
+ARCHITECT_Q: [Question a Principal Architect would ask — focuses on design patterns, architectural decisions, trade-off analysis, scalability, "why this approach over alternatives"]
+LEADER_Q: [Question a VP/Leader would ask — focuses on business impact, stakeholder management, ROI, risk, "how did this decision affect the business and team"]`);
+
+      const qType  = ((result.match(/TYPE:\s*([^\n]+)/)||[])[1]||'Technical').trim();
+      const qSkill = ((result.match(/SKILL:\s*([^\n]+)/)||[])[1]||'').trim();
+      const devQ   = ((result.match(/DEVELOPER_Q:\s*([^\n]+(?:\n(?!ARCHITECT_Q:|LEADER_Q:)[^\n]+)*)/)||[])[1]||'').trim();
+      const archQ  = ((result.match(/ARCHITECT_Q:\s*([^\n]+(?:\n(?!LEADER_Q:)[^\n]+)*)/)||[])[1]||'').trim();
+      const leadQ  = ((result.match(/LEADER_Q:\s*([^\n]+)/)||[])[1]||'').trim();
+
+      personaQuestions = { developer: devQ, architect: archQ, leader: leadQ };
+      currentQuestion = { type:qType, skill:qSkill, text:devQ, persona:'developer', ts:new Date().toISOString() };
+
+      document.getElementById('q-type-label').textContent = qType;
+      document.getElementById('q-skill-tag').textContent = qSkill ? `Skill: ${qSkill}` : '';
+      renderPersonaQuestion('developer');
+
+    } else {
+      const apiCall = activeModel==='gemini' ? callGemini : callClaude;
+      const result = await apiCall(`Generate one interview question for a Principal Enterprise Architect candidate.
+
+CANDIDATE BACKGROUND: ${getResume()}
+SKILLS TO FOCUS ON: ${skills.join(', ')}
+QUESTION TYPE: ${type}
+DIFFICULTY: ${diff}
+
+Reply in EXACTLY this format:
+TYPE: [Behavioral / Leadership]
+SKILL: [which competency this tests]
+QUESTION: [the full question]`);
+
+      const qType  = ((result.match(/TYPE:\s*([^\n]+)/)||[])[1]||type).trim();
+      const qSkill = ((result.match(/SKILL:\s*([^\n]+)/)||[])[1]||'').trim();
+      const qText  = ((result.match(/QUESTION:\s*([\s\S]+)/)||[])[1]||result).trim();
+
+      const modelLabel = activeModel==='gemini' ? '🔵 Gemini' : '🟣 Claude';
+      currentQuestion = { type:qType, skill:qSkill, text:qText, persona:null, model:activeModel, ts:new Date().toISOString() };
+      document.getElementById('q-type-label').textContent = `${qType} · ${modelLabel}`;
+      document.getElementById('q-skill-tag').textContent = qSkill ? `Skill: ${qSkill}` : '';
+      document.getElementById('q-text').textContent = qText;
+      document.getElementById('q-persona-badge').style.display='none';
+      document.getElementById('q-persona-hint').style.display='none';
+      document.getElementById('q-answer').placeholder = 'Type your answer here... use the STAR method (Situation, Task, Action, Result)';
+    }
+  }catch(e){
+    document.getElementById('q-text').textContent='❌ Error: '+e.message;
+  }
+  setBtn('btn-genq',false,'🎲 Generate Question');
+}
+
+function renderPersonaQuestion(persona){
+  const p = PERSONAS[persona];
+  const q = personaQuestions[persona];
+  if(!q) return;
+  const modelLabel = activeModel==='gemini'?'🔵 Gemini':activeModel==='both'?'🟣+🔵 Both':'🟣 Claude';
+  document.getElementById('q-text').textContent = q;
+  document.getElementById('q-persona-badge').style.display='block';
+  document.getElementById('q-persona-badge').textContent = `${p.label} · ${modelLabel}`;
+  document.getElementById('q-persona-hint').style.display='block';
+  document.getElementById('q-persona-hint').textContent = p.hint;
+  document.getElementById('q-answer').value='';
+  document.getElementById('q-answer').placeholder = `Answer for ${p.label.split(' ').slice(1).join(' ')}... ${persona==='developer'?'Be specific about implementation details.':persona==='architect'?'Focus on design patterns and trade-offs.':'Connect to business impact and team outcomes.'}`;
+  document.getElementById('feedback-box').style.display='none';
+  document.getElementById('feedback-status').textContent='';
+  currentQuestion = { ...currentQuestion, text:q, persona, model:activeModel };
+}
+
+function switchPersona(persona, btn){
+  currentPersona = persona;
+  document.querySelectorAll('.persona-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPersonaQuestion(persona);
+}
+
+async function getFeedback(){
+  const answer = document.getElementById('q-answer').value.trim();
+  if(!answer){ alert('Write your answer first.'); return; }
+  if(!currentQuestion){ alert('Generate a question first.'); return; }
+
+  const persona = currentQuestion.persona;
+  const personaContext = persona ? PERSONAS[persona] : null;
+  const model = currentQuestion.model || activeModel;
+
+  setBtn('btn-feedback',true,'✅ Get Feedback');
+  const box = document.getElementById('feedback-box');
+  box.style.display='block'; box.textContent='Evaluating your answer...';
+
+  const fp = 'You are evaluating a Principal Architect candidate. ' +
+    (personaContext ? 'You are '+personaContext.feedbackLens+'.' : 'You are a senior technical interviewer.') +
+    '\n\nQUESTION: ' + currentQuestion.text +
+    '\nSKILL: ' + currentQuestion.skill +
+    '\nCANDIDATE: ' + getResume() +
+    '\nANSWER: ' + answer +
+    (personaContext ? '\nINTERVIEWER FOCUS: ' + personaContext.focus : '') +
+    '\n\nSCORE: [1-5]\n' +
+    (personaContext ? 'PERSONA NOTE: [one sentence matching ' + persona + ' interviewer expectations]\n' : '') +
+    'STRENGTHS: [2-3 things that worked]\nIMPROVE: [2-3 things to sharpen]\nIDEAL ELEMENTS: [3-4 key points]\nTIP: [one actionable tip at Principal Architect level]';
+
+  try{
+    if(model==='both' && GEM_KEY){
+      box.textContent='Getting feedback from both Claude and Gemini...';
+      const [cr, gr] = await Promise.all([
+        callClaude(fp),
+        callGemini(fp + '\n\nGEMINI_PERSPECTIVE: [one unique observation from an enterprise/Google Cloud angle]')
+      ]);
+      const cs = parseInt((cr.match(/SCORE:\s*(\d)/)||[])[1]||3);
+      const gs = parseInt((gr.match(/SCORE:\s*(\d)/)||[])[1]||3);
+      const avg = Math.round((cs+gs)/2);
+      const gp = ((gr.match(/GEMINI_PERSPECTIVE:\s*([^\n]+)/)||[])[1]||'').trim();
+      box.innerHTML =
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">' +
+        '<div style="background:rgba(124,58,237,.07);border-radius:8px;padding:12px">' +
+        '<div style="font-size:11px;font-weight:500;color:#4c1d95;margin-bottom:6px;text-transform:uppercase">🟣 Claude · ' + cs + '/5</div>' +
+        '<div style="font-size:12px;white-space:pre-wrap">' + cr + '</div></div>' +
+        '<div style="background:rgba(59,130,246,.07);border-radius:8px;padding:12px">' +
+        '<div style="font-size:11px;font-weight:500;color:#1e40af;margin-bottom:6px;text-transform:uppercase">🔵 Gemini · ' + gs + '/5</div>' +
+        '<div style="font-size:12px;white-space:pre-wrap">' + gr + '</div></div></div>' +
+        '<div style="background:#f0fdf4;border-radius:8px;padding:10px;font-size:13px">' +
+        '<strong>Combined: ' + avg + '/5</strong>' + (gp ? ' &nbsp;·&nbsp; 🔵 ' + gp : '') + '</div>';
+      const passed = avg>=4;
+      examHistory.unshift({...currentQuestion,answer,score:avg,passed,personaLabel:personaContext?.label||null,model:'both',claudeScore:cs,geminiScore:gs,date:new Date().toLocaleDateString()});
+      if(examHistory.length>50) examHistory=examHistory.slice(0,50);
+      localStorage.setItem('gk_exam_hist',JSON.stringify(examHistory));
+      updateExamStats(); renderHistory();
+      document.getElementById('feedback-status').textContent = passed ? '✓ Strong (avg '+avg+'/5)' : '↩ Keep going (avg '+avg+'/5)';
+      document.getElementById('feedback-status').style.color = passed ? 'var(--green)' : 'var(--amber)';
+      showResumeAlertIfReady(currentQuestion.skill, avg);
+    } else {
+      const apiCall = model==='gemini' ? callGemini : callClaude;
+      const ml = model==='gemini' ? '🔵 Gemini' : '🟣 Claude';
+      const result = await apiCall(fp);
+      box.innerHTML = '<div style="font-size:11px;font-weight:500;color:var(--muted);margin-bottom:8px;text-transform:uppercase">'+ml+' feedback</div><div style="white-space:pre-wrap">'+result+'</div>';
+      const score = parseInt((result.match(/SCORE:\s*(\d)/)||[])[1]||3);
+      const passed = score>=4;
+      examHistory.unshift({...currentQuestion,answer,score,passed,personaLabel:personaContext?.label||null,model,date:new Date().toLocaleDateString()});
+      if(examHistory.length>50) examHistory=examHistory.slice(0,50);
+      localStorage.setItem('gk_exam_hist',JSON.stringify(examHistory));
+      updateExamStats(); renderHistory();
+      document.getElementById('feedback-status').textContent = passed ? '✓ Strong answer saved' : '↩ Saved to retry';
+      document.getElementById('feedback-status').style.color = passed ? 'var(--green)' : 'var(--amber)';
+      showResumeAlertIfReady(currentQuestion.skill, score);
+    }
+  }catch(e){ box.textContent='❌ Error: '+e.message; }
+  setBtn('btn-feedback',false,'✅ Get Feedback');
+}
+
+function markRetry(){
+  if(!currentQuestion) return;
+  examHistory.unshift({ ...currentQuestion, answer:'[skipped]', score:0, passed:false, date:new Date().toLocaleDateString() });
+  localStorage.setItem('gk_exam_hist', JSON.stringify(examHistory));
+  updateExamStats(); renderHistory();
+  document.getElementById('feedback-status').textContent='Saved to retry list';
+  document.getElementById('feedback-status').style.color='var(--amber)';
+}
+
+function updateExamStats(){
+  const total = examHistory.length;
+  const good  = examHistory.filter(q=>q.passed).length;
+  const skip  = examHistory.filter(q=>!q.passed).length;
+  document.getElementById('eq-total').textContent=total;
+  document.getElementById('eq-good').textContent=good;
+  document.getElementById('eq-skip').textContent=skip;
+  // Simple streak: consecutive days with at least one question
+  const days = [...new Set(examHistory.map(q=>q.date))];
+  document.getElementById('eq-streak').textContent=days.length;
+}
+
+function renderHistory(){
+  if(!examHistory.length) return;
+  document.getElementById('exam-history').style.display='block';
+  document.getElementById('hist-list').innerHTML = examHistory.slice(0,10).map(q=>`
+    <div class="hist-item">
+      <div class="hist-badge ${q.passed?'hist-good':'hist-skip'}">${q.passed?'✓':'↩'}</div>
+      <div style="flex:1">
+        <div style="font-weight:500;color:var(--text);margin-bottom:2px">${q.text.substring(0,80)}${q.text.length>80?'...':''}</div>
+        <div style="color:var(--muted)">${q.type} · ${q.skill}${q.personaLabel?' · '+q.personaLabel:''} · ${q.date} · ${'⭐'.repeat(q.score||0)}</div>
+      </div>
+    </div>`).join('');
+}
+
+// Init exam tab on load
+function initExamTab(){
+  updateExamStats();
+  renderHistory();
+  updateExamChips();
+}
+
+// ══════════════════════════════
+// REMINDERS & RESUME ALERTS
+// ══════════════════════════════
+
+const REMINDER_INTERVALS = {0:1,1:2,2:3,3:4,4:5,5:7};
+
+function checkDailyReminders(){
+  const skills = getSkills();
+  if(!skills.length) return;
+  const today = new Date().toDateString();
+  const lastCheck = localStorage.getItem('gk_last_reminder');
+  const shownToday = lastCheck===today;
+
+  const overdue = skills.filter(s=>{
+    if(s.progress===6) return false;
+    const last = s.lastPracticed ? new Date(s.lastPracticed) : new Date(s.addedDate||Date.now());
+    const daysSince = Math.floor((Date.now()-last)/86400000);
+    return daysSince >= (REMINDER_INTERVALS[s.progress]||1);
+  }).slice(0,3);
+
+  const stalled = skills.filter(s=>s.progress>0&&s.progress<4&&!s.resources.length);
+  const ready = getSkillsReadyForResume();
+  const banner = document.getElementById('hub-reminder');
+  if(!banner) return;
+
+  let html='';
+
+  if(ready.length){
+    html+=`<div style="background:linear-gradient(135deg,#0f1f3d,#1a3260);border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+      <div><div style="font-family:'DM Serif Display',serif;color:var(--gold);font-size:14px;margin-bottom:4px">📄 Resume update ready</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.7)">${ready.map(s=>s.name).join(', ')} — you've answered interview questions on these confidently.</div></div>
+      <button class="btn btn-gold btn-sm" onclick="checkResumeReady()" style="flex-shrink:0">Review →</button></div>`;
+  }
+
+  if(overdue.length){
+    html+=`<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:10px">
+      <div style="font-size:13px;font-weight:500;color:var(--navy);margin-bottom:8px">⏰ Skills needing practice today</div>
+      ${overdue.map(s=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+        <div><strong>${s.name}</strong><span style="font-size:11px;color:var(--muted);margin-left:8px">${PROG_LABELS[s.progress]} · ${s.proficiency}</span></div>
+        <button class="btn btn-navy btn-sm" onclick="quickPractice('${s.name.replace(/'/g,"\\'")}')">Practice →</button></div>`).join('')}
+    </div>`;
+  }
+
+  if(stalled.length&&!shownToday){
+    html+=`<div style="background:#fef3c7;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;margin-bottom:10px;font-size:13px;color:#92400e">
+      <strong>💡 No resources added yet:</strong> ${stalled.map(s=>s.name).join(', ')} — add a course or link to get started.</div>`;
+  }
+
+  banner.style.display = html ? 'block':'none';
+  banner.innerHTML = html;
+  if(html) localStorage.setItem('gk_last_reminder', today);
+}
+
+function getSkillsReadyForResume(){
+  const skills = getSkills();
+  const strongAnswers = examHistory.filter(q=>q.passed&&q.score>=4);
+  const confidentSkills = [...new Set(strongAnswers.map(q=>q.skill))];
+  const notified = JSON.parse(localStorage.getItem('gk_reco_notified')||'[]');
+  return skills.filter(s=>
+    s.progress>=4 &&
+    confidentSkills.some(cs=>cs.toLowerCase().includes(s.name.toLowerCase())||s.name.toLowerCase().includes(cs.toLowerCase())) &&
+    !notified.includes(s.name)
+  );
+}
+
+function checkResumeReady(){
+  const ready = getSkillsReadyForResume();
+  const inProg = getSkills().filter(s=>s.progress>=3&&s.progress<6);
+  const panel = document.getElementById('resume-reco-panel');
+
+  if(!ready.length&&!inProg.length){
+    alert('Keep going! Practice more interview questions and reach 75%+ progress on skills to unlock resume recommendations.');
+    return;
+  }
+  panel.style.display='block';
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+
+  let listHTML='';
+  if(ready.length){
+    listHTML+=`<div style="font-size:11px;color:rgba(255,255,255,.45);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Ready to add to resume</div>`;
+    listHTML+=ready.map(s=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:13px;color:rgba(255,255,255,.85)">
+      <span style="color:var(--gold)">✓</span><strong>${s.name}</strong>
+      <span style="font-size:11px;color:rgba(255,255,255,.4)">${PROG_LABELS[s.progress]}</span></div>`).join('');
+  }
+  if(inProg.length){
+    listHTML+=`<div style="font-size:11px;color:rgba(255,255,255,.45);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.05em">In progress</div>`;
+    listHTML+=inProg.map(s=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:13px;color:rgba(255,255,255,.6)">
+      <span style="color:rgba(255,255,255,.3)">◷</span>${s.name}
+      <span style="font-size:11px;color:rgba(255,255,255,.3)">${PROG_LABELS[s.progress]}</span></div>`).join('');
+  }
+  document.getElementById('resume-reco-list').innerHTML=listHTML;
+  document.getElementById('reco-output').style.display='none';
+}
+
+async function generateResumeRecos(){
+  const ready = getSkillsReadyForResume();
+  const inProg = getSkills().filter(s=>s.progress>=3);
+  const target = [...new Set([...ready,...inProg].map(s=>s.name))];
+  if(!target.length){ alert('No skills ready yet — practice more interview questions first.'); return; }
+
+  const btn = document.getElementById('btn-gen-reco');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Generating...';
+  const out = document.getElementById('reco-output');
+  out.style.display='block'; out.textContent='Analyzing your progress and generating resume bullets...';
+
+  const evidence = examHistory.filter(q=>q.passed&&q.score>=4).slice(0,8)
+    .map(q=>`Skill: ${q.skill} | Score: ${q.score}/5 | Persona: ${q.personaLabel||'general'}`).join('\n');
+
+  try{
+    const result = await callClaude(`You are a professional resume writer for senior technology leaders. Generate specific resume bullet suggestions based on learning progress and interview performance.
+
+CURRENT RESUME: ${getResume()}
+SKILLS ACTIVELY LEARNED & PRACTICED: ${target.join(', ')}
+INTERVIEW PERFORMANCE EVIDENCE: ${evidence||'Multiple skills at 75%+ progress'}
+
+SUMMARY LINE UPDATE:
+[One sentence to add/replace in professional summary reflecting new skills]
+
+NEW RESUME BULLETS:
+For each ready skill, one strong bullet:
+• [SKILL]: [Action verb] + [what you designed/recommended/implemented] + [outcome or application at Principal Architect level]
+
+LINKEDIN HEADLINE UPDATE:
+[Updated headline incorporating new skills]
+
+SKILLS SECTION ADDITIONS:
+[Skills to add, comma-separated]
+
+CAUTION:
+[Honest note on any skill needing more practice before claiming]
+
+Frame learning as architectural knowledge and technical guidance — do not fabricate delivery experience.`);
+
+    out.textContent=result;
+    const notified=JSON.parse(localStorage.getItem('gk_reco_notified')||'[]');
+    ready.forEach(s=>{ if(!notified.includes(s.name)) notified.push(s.name); });
+    localStorage.setItem('gk_reco_notified', JSON.stringify(notified));
+    checkDailyReminders();
+  }catch(e){ out.textContent='❌ Error: '+e.message; }
+  btn.disabled=false; btn.innerHTML='✨ Generate Resume Bullet Suggestions';
+}
+
+function goToResumeReco(){
+  document.getElementById('resume-alert').style.display='none';
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-hub').classList.add('active');
+  document.querySelectorAll('.nav-tab')[5].classList.add('active');
+  setTimeout(()=>checkResumeReady(),100);
+}
+
+function quickPractice(skillName){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-exam').classList.add('active');
+  document.querySelectorAll('.nav-tab')[6].classList.add('active');
+  selectedExamSkills=[skillName];
+  updateExamChips();
+  setTimeout(()=>document.getElementById('btn-genq').scrollIntoView({behavior:'smooth',block:'center'}),150);
+}
+
+function showResumeAlertIfReady(skill, score){
+  if(score<4) return;
+  const skills=getSkills();
+  const matched=skills.find(s=>
+    s.name.toLowerCase().includes(skill.toLowerCase())||
+    skill.toLowerCase().includes(s.name.toLowerCase())
+  );
+  if(!matched||matched.progress<3) return;
+  const notified=JSON.parse(localStorage.getItem('gk_reco_notified')||'[]');
+  if(notified.includes(matched.name)) return;
+
+  const alertEl=document.getElementById('resume-alert');
+  document.getElementById('resume-alert-text').innerHTML=
+    `You scored ${score}/5 on <strong>${skill}</strong> — progress is at ${PROG_LABELS[matched.progress]}. Strong enough to mention on your resume. Click below for specific bullet point language.`;
+  alertEl.style.display='block';
+  alertEl.scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  matched.lastPracticed=new Date().toISOString();
+  saveSkills(skills);
+}
+
+async function getLearningPath(){
+  const skill=document.getElementById('l-skill').value;
+  const time=document.getElementById('l-time').value;
+  const level=document.getElementById('l-level').value;
+  setBtn('btn-learn',true,'🧠 Build My 30-Day Path');
+  const out=document.getElementById('learn-out');
+  out.className='result-box'; out.textContent='Building your path...';
+
+  try{
+    const result = await callClaude(`You are a technical learning coach for senior architects.
+
+LEARNER: ${getResume()}
+SKILL: ${skill}
+TIME: ${time}
+LEVEL: ${level}
+
+🎯 WHY THIS MATTERS — 2-3 sentences for a Principal Architect job search in 2025
+📅 WEEK 1 — FOUNDATION: specific free resources (exact course/channel names)
+📅 WEEK 2 — BUILD: first hands-on project (specific and achievable)
+📅 WEEK 3 — DEEPEN: intermediate concepts to tackle
+📅 WEEK 4 — APPLY & SHOWCASE: how to add to resume/LinkedIn + interview talking points
+🆓 TOP FREE RESOURCES: 3-4 specific names or URLs
+💡 QUICK WIN: something doable in 2 hours this weekend
+🏆 MILESTONE: what "confident enough for a Principal Architect" looks like
+
+Be specific, realistic, high-signal. This person is busy.`);
+    out.textContent=result;
+  }catch(e){ out.textContent='❌ Error: '+e.message; }
+  setBtn('btn-learn',false,'🧠 Build My 30-Day Path');
+}
+</script>
+</body>
+</html>
